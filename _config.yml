@@ -1,0 +1,13 @@
+theme: jekyll-theme-cayman
+collections:
+  v1:
+    output: true
+  v2:
+    output: true
+title: "2026-2027 Y3A PR - Learning Log"
+description: Some description
+student:
+  name: Your Name
+  number: "00000"
+  team: Your team name
+  photo: /assets/media/profile_picture.jpeg

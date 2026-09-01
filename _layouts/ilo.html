@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#FFA500">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    {% include head-custom.html %}
+  </head>
+  <body>
+    
+    <header class="page-header" role="banner" style="position: relative;">
+      {% assign current_version = "v1" %}
+      {% if page.collection == "v1" %}
+        {% assign current_version = "v1" %}
+      {% elsif page.collection == "v2" %}
+        {% assign current_version = "v2" %}
+      {% endif %}
+      <div class="version-selector" style="position: absolute; top: 1rem; right: 1rem; z-index: 100;">
+        <select onchange="window.location.href=this.value" style="padding: 8px 12px; font-size: 14px; border-radius: 4px; border: 1px solid #fff; background: rgba(255, 255, 255, 0.9); cursor: pointer;">
+          {% for collection in site.collections %}
+            {% assign first_char = collection.label | slice: 0 %}
+            {% if first_char == "v" %}
+              {% assign version_url = "/" %}
+              {% assign page_filename = page.path | split: "/" | last %}
+              {% for target_ilo in collection.docs %}
+                {% assign target_filename = target_ilo.path | split: "/" | last %}
+                {% if target_filename == page_filename %}
+                  {% assign version_url = target_ilo.url %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+              <option value="{{ version_url | relative_url }}" {% if current_version == collection.label %}selected{% endif %}>
+                {{ collection.label }}
+              </option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <h1 style="color: white;" class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <h2 style="color: white;">
+        <a class="author" href="mailto: {{ site.student.number }}.buas.nl">{{ site.student.name }}</a>
+      </h2>
+      <h2 style="color: white;">{{ site.student.number }}</h2>
+      <a href="/" class="btn"> 🏠 </a>
+      <a href="/how-to-evidence" class="btn"> 🤔 </a>
+      {% assign sorted_ilos = site[page.collection] | sort:"order" %}
+      {% for ilo in sorted_ilos %}
+        <a href="{{ ilo.url }}" class="btn"> {{ ilo.preview_title }}</a>
+      {% endfor %}
+    </header>
+
+    <div class="site-name">
+      <a href="/" title="Return to the homepage">{{ site.title }}</a>
+    </div>
+
+    <main id="content" class="main-content" role="main">
+      {{ content }}
+
+      <style>
+        :root {
+          --sidebar-collapse-delay: 1.5s; /* Time before sidebar auto-collapses */
+        }
+
+        .sidebar {
+          position: fixed;
+          top: 25vh;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          border: 1px solid black;
+          padding: 1em;
+          background-color: #eee;
+          opacity: 0.9;
+          overflow: hidden;
+          transition: width 0.3s ease, padding 0.3s ease;
+          z-index: 50;
+        }
+
+        .sidebar a {
+          white-space: nowrap;
+          overflow: hidden;
+          transition: opacity 0.2s ease;
+        }
+
+        .sidebar.collapsed a {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .sidebar-left {
+          left: .3em;
+          width: 180px;
+        }
+        .sidebar-left.collapsed {
+          width: 12px;
+          padding: 1em 4px;
+          cursor: pointer;
+        }
+
+        .sidebar-right {
+          right: .3em;
+          width: 180px;
+        }
+        .sidebar-right.collapsed {
+          width: 12px;
+          padding: 1em 4px;
+          cursor: pointer;
+        }
+
+        .sidebar .sidebar-tab {
+          display: none;
+          width: 8px;
+          height: 48px;
+          margin: auto;
+          border-radius: 3px;
+          background:
+            repeating-linear-gradient(
+              to bottom,
+              transparent,
+              transparent 3px,
+              #bbb 3px,
+              #bbb 5px
+            );
+        }
+        .sidebar.collapsed .sidebar-tab {
+          display: block;
+        }
+        .sidebar.collapsed:hover .sidebar-tab {
+          background:
+            repeating-linear-gradient(
+              to bottom,
+              transparent,
+              transparent 3px,
+              #ee7623 3px,
+              #ee7623 5px
+            );
+        }
+      </style>
+
+      <div class="sidebar sidebar-left" id="sidebar-left">
+        {% assign nav_ilos = site[page.collection] | sort:"order" %}
+        {% for ilo in nav_ilos %}
+          <a href="{{ ilo.url }}" style="line-height: 50px; text-align: center;"> {{ ilo.preview_title }}</a>
+        {% endfor %}
+        <a href="#top" style="background-color: #ee7623; color: #fff; line-height: 50px; text-align: center; width: 150px;">Back To Top</a>
+        <div class="sidebar-tab"></div>
+      </div>
+
+      <div class="sidebar sidebar-right" id="sidebar-right">
+        <a href="#poor" style="line-height: 50px; width: 150px; text-align: right;">Poor 🔴</a>
+        <a href="#insufficient" style="line-height: 50px; width: 150px; text-align: right;">Insufficient 🟠</a>
+        <a href="#sufficient" style="line-height: 50px; width: 150px; text-align: right;">Sufficient 🟡</a>
+        <a href="#good" style="line-height: 50px; width: 150px; text-align: right;">Good 🟢</a>
+        <a href="#excellent" style="line-height: 50px; width: 150px; text-align: right;">Excellent 🔵</a>
+        <a href="#top" style="background-color: #ee7623; color: #fff; line-height: 50px; text-align: center; width: 150px;">Back To Top</a>
+        <div class="sidebar-tab"></div>
+      </div>
+
+      <script>
+        (function() {
+          var COLLAPSE_DELAY = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-collapse-delay')) * 1000;
+
+          document.querySelectorAll('.sidebar').forEach(function(sidebar) {
+            var timer = null;
+
+            function collapse() {
+              sidebar.classList.add('collapsed');
+            }
+
+            function expand() {
+              sidebar.classList.remove('collapsed');
+            }
+
+            function startTimer() {
+              clearTimeout(timer);
+              timer = setTimeout(collapse, COLLAPSE_DELAY);
+            }
+
+            sidebar.addEventListener('mouseenter', function() {
+              clearTimeout(timer);
+              expand();
+            });
+
+            sidebar.addEventListener('mouseleave', function() {
+              startTimer();
+            });
+
+            // Start collapsed after the initial delay
+            startTimer();
+          });
+        })();
+      </script>
+
+      <footer class="site-footer">
+        <div class="ilo-navigation">
+          {% assign current_ilos = site[page.collection] | sort:"order" %}
+          {% assign current_index = nil %}
+          {% for ilo in current_ilos %}
+            {% if ilo.url == page.url %}
+              {% assign current_index = forloop.index0 %}
+            {% endif %}
+          {% endfor %}
+
+          {% if current_index > 0 %}
+            {% assign prev = current_index | minus: 1 %}
+            <a href="{{ current_ilos[prev].url }}" class="footer-navigation-btn">{{ current_ilos[prev].preview_title }}</a>
+          {% else %}
+          <span></span>
+          {% endif %}
+
+          {% assign max_index = current_ilos.size | minus: 1 %}
+          {% if current_index < max_index %}
+            {% assign next = current_index | plus: 1 %}
+            <a href="{{ current_ilos[next].url }}" class="footer-navigation-btn">{{ current_ilos[next].preview_title }}</a>
+          {% else %}
+            <span></span>
+          {% endif %}
+        </div> 
+        {% if site.github.is_project_page %}
+          <span class="site-footer-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.</span>
+        {% endif %}
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>
