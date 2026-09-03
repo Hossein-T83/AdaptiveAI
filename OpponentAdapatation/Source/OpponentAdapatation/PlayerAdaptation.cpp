@@ -22,7 +22,28 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 
 	bIsWindowOpen = true;
 	CurrentContext = Context;
+	WindowTime = WindowSeconds;
 
+}
+
+void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
+{
+	if (!bIsWindowOpen || Action == EPlayerAction::None)
+	{
+		return;
+	}
+
+	bIsWindowOpen = false;
+	const uint32 ContextIndex = (uint32)CurrentContext.ToKey();
+	FActionCounts& ActionRef = TableOfContext.FindOrAdd(ContextIndex);
+	
+	for (float& Weight : ActionRef.Weights)
+	{
+		Weight *= DecayPerNewContext;
+	}
+
+	ActionRef.Weights[(int32)Action] += 1.f;
+	ActionRef.Total += 1.f;
 }
 
 

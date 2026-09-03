@@ -41,6 +41,14 @@ struct FPlayerActionContext
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	uint8 HealthBucket = 3;
 
+	// Packs the context into a single map key
+	uint32 ToKey() const
+	{
+		return static_cast<uint32>(Distance)
+			| (static_cast<uint32>(HealthBucket) << 8)
+			| (static_cast<uint32>(BossAction) << 16);
+	}
+
 };
 
 USTRUCT(BlueprintType)
@@ -64,12 +72,10 @@ struct FActionCounts
 	GENERATED_BODY()
 
 	UPROPERTY()
-	TArray<float> Weights;
+	float Weights[static_cast<int32>(EPlayerAction::Count)] = {};
 
 	UPROPERTY()
 	float Total = 0.f;
-
-	void EnsureSized();
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -81,10 +87,17 @@ public:
 	// Sets default values for this component's properties
 	UPlayerAdaptation();
 
-	UFUNCTION(BlueprintCallable, Category = "Adaptation")
-	void OpenTrackingWindow(const FPlayerActionContext& Context, float WindowSeconds = 1.5f);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	void OpenTrackingWindow(const FPlayerActionContext& Context, float WindowSeconds = 1.5f);
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	void RecordPlayerAction(EPlayerAction Action);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning", meta = (ClampMin = "0.5", ClampMax = "1.0"))
+	float DecayPerNewContext = 0.9f;
 
 protected:
 	// Called when the game starts
@@ -97,7 +110,7 @@ private:
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
-	TArray<FActionCounts> ActionCounts;
+	TMap<uint32, FActionCounts> TableOfContext;
 
 		
 };
