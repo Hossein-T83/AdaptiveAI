@@ -46,6 +46,26 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	ActionRef.Total += 1.f;
 }
 
+void UPlayerAdaptation::LogTable() const
+{
+	UE_LOG(LogTemp, Log, TEXT("Player Adaptation Table:"));
+	for (const auto& Pair : TableOfContext)
+	{
+		const uint32 ContextIndex = Pair.Key;
+		const FActionCounts& Counts = Pair.Value;
+		FPlayerActionContext Context = FPlayerActionContext::FromKey(ContextIndex);
+		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *Context.ToString());
+		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
+		{
+			EPlayerAction Action = static_cast<EPlayerAction>(i);
+			float Weight = Counts.Weights[i];
+			float Confidence = 0;
+			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f, Confidence: %.2f"), *UEnum::GetValueAsString(Action), Weight, Confidence);
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT(""));
+
+}
 
 // Called when the game starts
 void UPlayerAdaptation::BeginPlay()

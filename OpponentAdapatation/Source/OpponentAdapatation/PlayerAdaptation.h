@@ -49,6 +49,21 @@ struct FPlayerActionContext
 			| (static_cast<uint32>(BossAction) << 16);
 	}
 
+	// Unpacks a key into a context struct
+	static FPlayerActionContext FromKey(uint32 Key)
+	{
+		FPlayerActionContext Context;
+		Context.Distance = static_cast<EDistance>(Key & 0xFF);
+		Context.HealthBucket = static_cast<uint8>((Key >> 8) & 0xFF);
+		Context.BossAction = static_cast<uint8>((Key >> 16) & 0xFF);
+		return Context;
+	}
+
+	FString ToString() const
+	{
+		return FString::Printf(TEXT("Distance=%d, HealthBucket=%d, BossAction=%d"),
+			static_cast<uint8>(Distance), HealthBucket, BossAction);
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -95,6 +110,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	void RecordPlayerAction(EPlayerAction Action);
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
+	void LogTable() const;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning", meta = (ClampMin = "0.5", ClampMax = "1.0"))
 	float DecayPerNewContext = 0.9f;
