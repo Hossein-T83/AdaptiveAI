@@ -1,0 +1,64 @@
+# --- Learning Log (Jekyll) ---
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# --- IDE / editor ---
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+
+# --- Unreal generated project files ---
+*.sln
+*.xcodeproj
+*.xcworkspace
+
+# --- Unreal generated directories ---
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+
+# Keep a few things Unreal stores under Build/
+!Build/*/
+Build/*/**
+!Build/*/PakBlacklist*.txt
+!Build/**/*.ico
+
+# --- Compiled output ---
+*.obj
+*.o
+*.pch
+*.gch
+*.dll
+*.so
+*.dylib
+*.lib
+*.a
+*.exe
+*.pdb
+*.ipa
+*.app
+
+# --- Built map data (regenerated on build) ---
+*_BuiltData.uasset
+
+# --- Source art that isn't imported into Content ---
+SourceArt/**/*.png
+SourceArt/**/*.tga
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
