@@ -36,7 +36,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	bIsWindowOpen = false;
 	const uint32 ContextIndex = (uint32)CurrentContext.ToKey();
 	FActionCounts& ActionRef = TableOfContext.FindOrAdd(ContextIndex);
-	
+
 	for (float& Weight : ActionRef.Weights)
 	{
 		Weight *= DecayPerNewContext;
@@ -73,12 +73,32 @@ void UPlayerAdaptation::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+
 }
 
 void UPlayerAdaptation::CloseTrackingWindow()
 {
 	bIsWindowOpen = false;
+}
+
+std::pair<int32, float> UPlayerAdaptation::Predict(uint32 ContextKey)
+{
+	int32 BestIndex = 0;
+	float BestWeight = 0.f;
+	auto& ActionHistory = TableOfContext[ContextKey];
+	auto& AllWeights = ActionHistory.Weights;
+	for (int32 Index = 0; Index < int32(EPlayerAction::Count); Index++)
+	{
+		auto& CurrentWeight = AllWeights[Index];
+		if (CurrentWeight > BestWeight)
+		{
+			BestWeight = CurrentWeight;
+			BestIndex = Index;
+		}
+	}
+
+	CurrentConfidence = BestWeight / ActionHistory.Total;
+	return std::pair<int32, float>(BestIndex, CurrentConfidence);
 }
 
 

@@ -124,11 +124,13 @@ protected:
 private:
 
 	void CloseTrackingWindow();
+	std::pair<int32, float> Predict(uint32 ContextKey);
 
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
 	TMap<uint32, FActionCounts> TableOfContext;
+	float CurrentConfidence = 0.f;
 
 		
 };
