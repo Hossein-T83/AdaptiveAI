@@ -24,6 +24,7 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 	CurrentContext = Context;
 	WindowTime = WindowSeconds;
 
+	Predict(Context.ToKey());
 }
 
 void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
@@ -67,6 +68,29 @@ void UPlayerAdaptation::LogTable() const
 
 }
 
+void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
+{
+	if (!bIsWindowOpen)
+	{
+		return;
+	}
+	if (CurrentPrediction.Confidence > ConfidenceThreshold)
+	{
+		if (Action == CurrentPrediction.Action)
+		{
+			TotalCorrectPredictions += 1.f;
+			Accuracy = TotalCorrectPredictions / TotalPredictions; // Assuming at least one prediction has been made
+			UE_LOG(LogTemp, Log, TEXT("Prediction correct! Action: %s, Confidence: %.2f"), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Prediction incorrect. Predicted: %s, Actual: %s, Confidence: %.2f"), *UEnum::GetValueAsString(CurrentPrediction.Action), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
+		}
+	}
+	
+	
+}
+
 // Called when the game starts
 void UPlayerAdaptation::BeginPlay()
 {
@@ -81,7 +105,7 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	bIsWindowOpen = false;
 }
 
-std::pair<int32, float> UPlayerAdaptation::Predict(uint32 ContextKey)
+void UPlayerAdaptation::Predict(uint32 ContextKey)
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
@@ -98,7 +122,12 @@ std::pair<int32, float> UPlayerAdaptation::Predict(uint32 ContextKey)
 	}
 
 	CurrentConfidence = BestWeight / ActionHistory.Total;
-	return std::pair<int32, float>(BestIndex, CurrentConfidence);
+	CurrentPrediction = FPredictionResult(EPlayerAction(BestIndex), CurrentConfidence);
+
+	if (CurrentPrediction.Confidence > ConfidenceThreshold)
+	{
+		TotalPredictions += 1.f;
+	}
 }
 
 

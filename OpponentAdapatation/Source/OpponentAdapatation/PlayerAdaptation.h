@@ -67,6 +67,16 @@ struct FPlayerActionContext
 };
 
 USTRUCT(BlueprintType)
+struct FPredictionResult
+{
+	GENERATED_BODY()
+	UPROPERTY(BlueprintReadOnly, Category = "Adaptation")
+	EPlayerAction Action = EPlayerAction::None;
+	UPROPERTY(BlueprintReadOnly, Category = "Adaptation")
+	float Confidence = 0.f;
+};
+
+USTRUCT(BlueprintType)
 struct FActionPrediction
 {
 	GENERATED_BODY()
@@ -81,7 +91,7 @@ struct FActionPrediction
 	float SampleWeight = 0.f;
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FActionCounts
 {
 	GENERATED_BODY()
@@ -92,6 +102,7 @@ struct FActionCounts
 	UPROPERTY()
 	float Total = 0.f;
 };
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OPPONENTADAPATATION_API UPlayerAdaptation : public UActorComponent
@@ -114,6 +125,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogTable() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	void GradePrediction(EPlayerAction Action);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning", meta = (ClampMin = "0.5", ClampMax = "1.0"))
 	float DecayPerNewContext = 0.9f;
 
@@ -124,13 +138,18 @@ protected:
 private:
 
 	void CloseTrackingWindow();
-	std::pair<int32, float> Predict(uint32 ContextKey);
+	void Predict(uint32 ContextKey);
 
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
 	TMap<uint32, FActionCounts> TableOfContext;
 	float CurrentConfidence = 0.f;
+	FPredictionResult CurrentPrediction;
+	float ConfidenceThreshold = 0.7f;
+	float TotalCorrectPredictions = 0.f;
+	float TotalPredictions = 0.f;
+	float Accuracy = 0.f;
 
 		
 };
