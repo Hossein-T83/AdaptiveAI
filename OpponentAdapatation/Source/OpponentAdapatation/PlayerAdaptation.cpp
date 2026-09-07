@@ -29,7 +29,7 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 
 void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 {
-	if (!bIsWindowOpen || Action == EPlayerAction::None)
+	if (!bIsWindowOpen /*|| Action == EPlayerAction::None*/)
 	{
 		return;
 	}
@@ -42,6 +42,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	{
 		Weight *= DecayPerNewContext;
 	}
+    ActionRef.Total *= DecayPerNewContext;
 
 	ActionRef.Weights[(int32)Action] += 1.f;
 	ActionRef.Total += 1.f;
@@ -61,25 +62,30 @@ void UPlayerAdaptation::LogTable() const
 			EPlayerAction Action = static_cast<EPlayerAction>(i);
 			float Weight = Counts.Weights[i];
 			float Confidence = 0;
-			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f, Confidence: %.2f"), *UEnum::GetValueAsString(Action), Weight, Confidence);
+			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
 		}
 	}
 	UE_LOG(LogTemp, Log, TEXT(""));
 
 }
 
+void UPlayerAdaptation::LogPrediction() const
+{
+	UE_LOG(LogTemp, Log, TEXT("Current Prediction: Action: %s, Confidence: %.2f"), *UEnum::GetValueAsString(CurrentPrediction.Action), CurrentPrediction.Confidence);
+}
+
+void UPlayerAdaptation::LogAccuracy() const
+{
+	UE_LOG(LogTemp, Log, TEXT("Prediction Accuracy: %.2f%% (%d/%d)"), Accuracy * 100.f, static_cast<int32>(TotalCorrectPredictions), static_cast<int32>(TotalPredictions));
+}
+
 void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 {
-	if (!bIsWindowOpen)
-	{
-		return;
-	}
 	if (CurrentPrediction.Confidence > ConfidenceThreshold)
 	{
 		if (Action == CurrentPrediction.Action)
 		{
 			TotalCorrectPredictions += 1.f;
-			Accuracy = TotalCorrectPredictions / TotalPredictions; // Assuming at least one prediction has been made
 			UE_LOG(LogTemp, Log, TEXT("Prediction correct! Action: %s, Confidence: %.2f"), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
 		}
 		else
@@ -87,8 +93,8 @@ void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 			UE_LOG(LogTemp, Log, TEXT("Prediction incorrect. Predicted: %s, Actual: %s, Confidence: %.2f"), *UEnum::GetValueAsString(CurrentPrediction.Action), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
 		}
 	}
-	
-	
+
+	Accuracy = TotalCorrectPredictions / TotalPredictions;
 }
 
 // Called when the game starts
@@ -109,6 +115,12 @@ void UPlayerAdaptation::Predict(uint32 ContextKey)
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
+	if (!TableOfContext.Contains(ContextKey))
+	{
+		CurrentConfidence = 0.f;
+		CurrentPrediction = FPredictionResult(EPlayerAction::None, CurrentConfidence);
+		return;
+	}
 	auto& ActionHistory = TableOfContext[ContextKey];
 	auto& AllWeights = ActionHistory.Weights;
 	for (int32 Index = 0; Index < int32(EPlayerAction::Count); Index++)

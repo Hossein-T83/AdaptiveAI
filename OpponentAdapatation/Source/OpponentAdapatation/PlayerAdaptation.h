@@ -125,6 +125,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogTable() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
+	void LogPrediction() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
+	void LogAccuracy() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	void GradePrediction(EPlayerAction Action);
 
@@ -143,7 +149,7 @@ private:
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
-	TMap<uint32, FActionCounts> TableOfContext;
+	TMap<uint32, FActionCounts> TableOfContext{};
 	float CurrentConfidence = 0.f;
 	FPredictionResult CurrentPrediction;
 	float ConfidenceThreshold = 0.7f;
