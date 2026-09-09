@@ -97,6 +97,16 @@ void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 	Accuracy = TotalCorrectPredictions / TotalPredictions;
 }
 
+FPredictionResult UPlayerAdaptation::GetCurrentPrediction() const
+{
+	return CurrentPrediction;
+}
+
+FString UPlayerAdaptation::GetContextAsString() const
+{
+	return CurrentContext.ToString();
+}
+
 // Called when the game starts
 void UPlayerAdaptation::BeginPlay()
 {

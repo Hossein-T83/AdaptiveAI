@@ -136,6 +136,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning", meta = (ClampMin = "0.5", ClampMax = "1.0"))
 	float DecayPerNewContext = 0.9f;
+	
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline FPredictionResult GetCurrentPrediction() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline FString GetContextAsString() const;
 
 protected:
 	// Called when the game starts
