@@ -24,9 +24,15 @@ void FGameplayDebuggerCategory_Adaptation::CollectData(APlayerController* OwnerP
 	}
 	
 	const UPlayerAdaptation* Model = DebugActor->FindComponentByClass<UPlayerAdaptation>();
+	if (!Model)
+	{
+		return;
+	}
+	
 	Data.PredictedAction = UEnum::GetValueAsString(Model->GetCurrentPrediction().Action);
 	Data.Confidence = Model->GetCurrentPrediction().Confidence;
 	Data.Context = Model->GetContextAsString();
+	Data.Accuracy = Model->GetAccuracy();
 }
 
 void FGameplayDebuggerCategory_Adaptation::DrawData(APlayerController* OwnerPC, FGameplayDebuggerCanvasContext& CanvasContext)

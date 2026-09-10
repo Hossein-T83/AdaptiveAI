@@ -142,6 +142,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline FString GetContextAsString() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline float GetAccuracy() const;
 
 protected:
 	// Called when the game starts

@@ -107,6 +107,11 @@ FString UPlayerAdaptation::GetContextAsString() const
 	return CurrentContext.ToString();
 }
 
+float UPlayerAdaptation::GetAccuracy() const
+{
+	return Accuracy;
+}
+
 // Called when the game starts
 void UPlayerAdaptation::BeginPlay()
 {
