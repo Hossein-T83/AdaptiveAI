@@ -123,6 +123,8 @@ void UPlayerAdaptation::BeginPlay()
 
 void UPlayerAdaptation::CloseTrackingWindow()
 {
+	RecordPlayerAction(EPlayerAction::None);
+	GradePrediction(EPlayerAction::None);
 	bIsWindowOpen = false;
 }
 
