@@ -7,12 +7,14 @@
 #include "Logging/LogMacros.h"
 #include "OpponentAdapatationCharacter.generated.h"
 
+enum class EPlayerAction : uint8;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerActionRecorded, EPlayerAction, Action);
 
 /**
  *  A simple player-controllable third person character
@@ -52,7 +54,13 @@ protected:
 public:
 
 	/** Constructor */
-	AOpponentAdapatationCharacter();	
+	AOpponentAdapatationCharacter();
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
+	EPlayerAction CurrentPlayerAction;
+	
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Adaptation")
+	FOnPlayerActionRecorded OnPlayerActionRecorded;
 
 protected:
 
