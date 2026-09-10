@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "OpponentAdapatation.h"
+#include "PlayerAdaptation.h"
 
 AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 {
@@ -65,6 +66,9 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOpponentAdapatationCharacter::Look);
+		
+		//Dodge
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AOpponentAdapatationCharacter::Dodge);
 	}
 	else
 	{
@@ -88,6 +92,11 @@ void AOpponentAdapatationCharacter::Look(const FInputActionValue& Value)
 
 	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
+
+void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
+{
+	OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)

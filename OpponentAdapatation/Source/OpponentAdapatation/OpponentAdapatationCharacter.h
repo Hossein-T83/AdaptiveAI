@@ -50,6 +50,9 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* MouseLookAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* DodgeAction;
 
 public:
 
@@ -74,6 +77,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	
+	void Dodge(const FInputActionValue& Value);
 
 public:
 
