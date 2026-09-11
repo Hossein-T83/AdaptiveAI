@@ -17,14 +17,14 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -54,25 +54,32 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AOpponentAdapatationCharacter::Move);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &AOpponentAdapatationCharacter::Look);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::Move);
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::Look);
 
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOpponentAdapatationCharacter::Look);
-		
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::Look);
+
 		//Dodge
-		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &AOpponentAdapatationCharacter::Dodge);
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this,
+		                                   &AOpponentAdapatationCharacter::Dodge);
 	}
 	else
 	{
-		UE_LOG(LogOpponentAdapatation, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogOpponentAdapatation, Error,
+		       TEXT(
+			       "'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."
+		       ), *GetNameSafe(this));
 	}
 }
 
@@ -96,7 +103,41 @@ void AOpponentAdapatationCharacter::Look(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
-	OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
+	if (GetController() != nullptr)
+	{
+		FVector Direction = GetLastMovementInputVector();
+		if (Direction.IsNearlyZero())
+		{
+			Direction = -GetActorForwardVector();
+		}
+		Direction.Normalize();
+
+		LaunchCharacter(Direction * 1600, true, true);
+
+		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
+		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
+		{
+			if (Local.Y > 0)
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeRight);
+			}
+			else
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
+			}
+		}
+		else
+		{
+			if (Local.X > 0)
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeForward);
+			}
+			else
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeBack);
+			}
+		}
+	}
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
