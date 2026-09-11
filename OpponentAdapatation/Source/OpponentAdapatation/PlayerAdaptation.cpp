@@ -126,6 +126,10 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	RecordPlayerAction(EPlayerAction::None);
 	GradePrediction(EPlayerAction::None);
 	bIsWindowOpen = false;
+	
+	LogTable();
+	LogPrediction();
+	LogAccuracy();
 }
 
 void UPlayerAdaptation::Predict(uint32 ContextKey)
