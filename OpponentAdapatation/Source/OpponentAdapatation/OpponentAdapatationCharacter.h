@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerAdaptation.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "OpponentAdapatationCharacter.generated.h"
@@ -79,6 +80,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 	void Dodge(const FInputActionValue& Value);
+	
+	EPlayerAction LastAction;
 
 public:
 
