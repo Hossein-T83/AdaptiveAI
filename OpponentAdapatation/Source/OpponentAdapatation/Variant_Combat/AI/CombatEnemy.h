@@ -41,17 +41,14 @@ public:
 	/** Constructor */
 	ACombatEnemy();
 
-protected:
-
-	/** Max amount of HP the character will have on respawn */
-	UPROPERTY(EditAnywhere, Category="Damage")
-	float MaxHP = 3.0f;
-
-public:
-
+	
 	/** Current amount of HP the character has */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
 	float CurrentHP = 0.0f;
+	
+	/** Max amount of HP the character will have on respawn */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
+	float MaxHP = 3.0f;
 
 protected:
 
