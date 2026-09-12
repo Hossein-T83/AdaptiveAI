@@ -24,7 +24,7 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 	CurrentContext = Context;
 	WindowTime = WindowSeconds;
 
-	Predict(Context.ToKey());
+	Predict(CurrentContext);
 }
 
 void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
@@ -35,8 +35,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	}
 
 	bIsWindowOpen = false;
-	const uint32 ContextIndex = (uint32)CurrentContext.ToKey();
-	FActionCounts& ActionRef = TableOfContext.FindOrAdd(ContextIndex);
+	FActionCounts& ActionRef = TableOfContext.FindOrAdd(CurrentContext);
 
 	for (float& Weight : ActionRef.Weights)
 	{
@@ -44,7 +43,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	}
     ActionRef.Total *= DecayPerNewContext;
 
-	ActionRef.Weights[(int32)Action] += 1.f;
+	ActionRef.Weights[static_cast<int32>(Action)] += 1.f;
 	ActionRef.Total += 1.f;
 }
 
@@ -53,9 +52,8 @@ void UPlayerAdaptation::LogTable() const
 	UE_LOG(LogTemp, Log, TEXT("Player Adaptation Table:"));
 	for (const auto& Pair : TableOfContext)
 	{
-		const uint32 ContextIndex = Pair.Key;
 		const FActionCounts& Counts = Pair.Value;
-		FPlayerActionContext Context = FPlayerActionContext::FromKey(ContextIndex);
+		FPlayerActionContext Context = Pair.Key;
 		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *Context.ToString());
 		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
 		{
@@ -66,7 +64,6 @@ void UPlayerAdaptation::LogTable() const
 		}
 	}
 	UE_LOG(LogTemp, Log, TEXT(""));
-
 }
 
 void UPlayerAdaptation::LogPrediction() const
@@ -132,19 +129,19 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	LogAccuracy();
 }
 
-void UPlayerAdaptation::Predict(uint32 ContextKey)
+void UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
-	if (!TableOfContext.Contains(ContextKey))
+	if (!TableOfContext.Contains(Context))
 	{
 		CurrentConfidence = 0.f;
 		CurrentPrediction = FPredictionResult(EPlayerAction::None, CurrentConfidence);
 		return;
 	}
-	auto& ActionHistory = TableOfContext[ContextKey];
+	auto& ActionHistory = TableOfContext[Context];
 	auto& AllWeights = ActionHistory.Weights;
-	for (int32 Index = 0; Index < int32(EPlayerAction::Count); Index++)
+	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
 	{
 		auto& CurrentWeight = AllWeights[Index];
 		if (CurrentWeight > BestWeight)
@@ -155,7 +152,7 @@ void UPlayerAdaptation::Predict(uint32 ContextKey)
 	}
 
 	CurrentConfidence = BestWeight / ActionHistory.Total;
-	CurrentPrediction = FPredictionResult(EPlayerAction(BestIndex), CurrentConfidence);
+	CurrentPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), CurrentConfidence);
 
 	if (CurrentPrediction.Confidence > ConfidenceThreshold)
 	{

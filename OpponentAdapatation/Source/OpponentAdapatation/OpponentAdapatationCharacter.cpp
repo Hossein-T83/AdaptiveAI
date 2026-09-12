@@ -161,7 +161,7 @@ void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 		// Broadcasting direction
 		const FVector WorldDirection = (ForwardDirection * Forward) + (RightDirection * Right);
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(WorldDirection);
-		EPlayerAction Action = EPlayerAction::MoveRight;
+		EPlayerAction Action;
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
 		{
 			if (Local.Y > 0)

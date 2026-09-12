@@ -23,6 +23,15 @@ enum class EPlayerAction : uint8
 };
 
 UENUM(BlueprintType)
+enum class EBossAttacks : uint8
+{
+	Attack1,
+	Attack2, 
+	Attack3, 
+	Count	UMETA(Hidden)
+};
+
+UENUM(BlueprintType)
 enum class EDistance : uint8
 {
 	Close,
@@ -32,41 +41,57 @@ enum class EDistance : uint8
 };
 
 USTRUCT(BlueprintType)
+struct FFightContext
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
+	EDistance Distance = EDistance::Medium;
+	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
+	uint8 HealthBucket = 3;
+	
+	FString ToString() const
+	{
+		return FString::Printf(TEXT("Distance=%d, HealthBucket=%d"),
+			static_cast<uint8>(Distance), HealthBucket);
+	}
+	
+	bool operator==(const FFightContext& Other) const
+	{
+		return Distance == Other.Distance
+			&& HealthBucket == Other.HealthBucket;
+	}
+
+	friend uint32 GetTypeHash(const FFightContext& C)
+	{
+		return HashCombine(GetTypeHash(C.Distance), GetTypeHash(C.HealthBucket));
+	}
+};
+
+USTRUCT(BlueprintType)
 struct FPlayerActionContext
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	EDistance Distance = EDistance::Medium;
-
+	FFightContext Combat;
+	
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	uint8 BossAction = 0;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	uint8 HealthBucket = 3;
-
-	// Packs the context into a single map key
-	uint32 ToKey() const
-	{
-		return static_cast<uint32>(Distance)
-			| (static_cast<uint32>(HealthBucket) << 8)
-			| (static_cast<uint32>(BossAction) << 16);
-	}
-
-	// Unpacks a key into a context struct
-	static FPlayerActionContext FromKey(uint32 Key)
-	{
-		FPlayerActionContext Context;
-		Context.Distance = static_cast<EDistance>(Key & 0xFF);
-		Context.HealthBucket = static_cast<uint8>((Key >> 8) & 0xFF);
-		Context.BossAction = static_cast<uint8>((Key >> 16) & 0xFF);
-		return Context;
-	}
-
 	FString ToString() const
 	{
-		return FString::Printf(TEXT("Distance=%d, HealthBucket=%d, BossAction=%d"),
-			static_cast<uint8>(Distance), HealthBucket, BossAction);
+		return FString::Printf(TEXT("%s, BossAction=%d"),*Combat.ToString(), BossAction);
+	}
+	
+	bool operator==(const FPlayerActionContext& Other) const
+	{
+		return Combat == Other.Combat && BossAction == Other.BossAction;
+	}
+
+	friend uint32 GetTypeHash(const FPlayerActionContext& C)
+	{
+		return HashCombine(GetTypeHash(C.Combat), GetTypeHash(C.BossAction));
 	}
 };
 
@@ -106,7 +131,6 @@ struct FActionCounts
 	UPROPERTY()
 	float Total = 0.f;
 };
-
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OPPONENTADAPATATION_API UPlayerAdaptation : public UActorComponent
@@ -157,12 +181,12 @@ protected:
 private:
 
 	void CloseTrackingWindow();
-	void Predict(uint32 ContextKey);
+	void Predict(const FPlayerActionContext& Context);
 
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
-	TMap<uint32, FActionCounts> TableOfContext{};
+	TMap<FPlayerActionContext, FActionCounts> TableOfContext{};
 	float CurrentConfidence = 0.f;
 	FPredictionResult CurrentPrediction;
 	float ConfidenceThreshold = 0.7f;
