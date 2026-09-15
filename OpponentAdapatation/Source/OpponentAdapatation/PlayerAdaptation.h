@@ -19,16 +19,7 @@ enum class EPlayerAction : uint8
 	MoveRight,
 	MoveBack,
 	MoveForward,
-	Count	UMETA(Hidden)
-};
-
-UENUM(BlueprintType)
-enum class EBossAttacks : uint8
-{
-	Attack1,
-	Attack2, 
-	Attack3, 
-	Count	UMETA(Hidden)
+	Count UMETA(Hidden)
 };
 
 UENUM(BlueprintType)
@@ -37,25 +28,46 @@ enum class EDistance : uint8
 	Close,
 	Medium,
 	Far,
-	Count	UMETA(Hidden)
+	Count UMETA(Hidden)
+};
+
+USTRUCT(BlueprintType)
+struct FBossAttack
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	int32 Id = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	FName AttackName;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	float Cooldown = 2.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Score")
+	TMap<EDistance, float> DistanceScores;
+	
+	UPROPERTY(EditAnywhere, Category = "Score")
+	TMap<uint8, float> HealthScores;
 };
 
 USTRUCT(BlueprintType)
 struct FFightContext
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	EDistance Distance = EDistance::Medium;
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	uint8 HealthBucket = 3;
-	
+
 	FString ToString() const
 	{
 		return FString::Printf(TEXT("Distance=%d, HealthBucket=%d"),
-			static_cast<uint8>(Distance), HealthBucket);
+		                       static_cast<uint8>(Distance), HealthBucket);
 	}
-	
+
 	bool operator==(const FFightContext& Other) const
 	{
 		return Distance == Other.Distance
@@ -72,18 +84,18 @@ USTRUCT(BlueprintType)
 struct FPlayerActionContext
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	FFightContext Combat;
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	uint8 BossAction = 0;
+	int32 BossAction = 0;
 
 	FString ToString() const
 	{
-		return FString::Printf(TEXT("%s, BossAction=%d"),*Combat.ToString(), BossAction);
+		return FString::Printf(TEXT("%s, BossAction=%d"), *Combat.ToString(), BossAction);
 	}
-	
+
 	bool operator==(const FPlayerActionContext& Other) const
 	{
 		return Combat == Other.Combat && BossAction == Other.BossAction;
@@ -132,17 +144,18 @@ struct FActionCounts
 	float Total = 0.f;
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class OPPONENTADAPATATION_API UPlayerAdaptation : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UPlayerAdaptation();
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	void OpenTrackingWindow(const FPlayerActionContext& Context, float WindowSeconds = 1.5f);
@@ -150,6 +163,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	void RecordPlayerAction(EPlayerAction Action);
 
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	void GradePrediction(EPlayerAction Action);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning",
+		meta = (ClampMin = "0.5", ClampMax = "1.0"))
+	float DecayPerNewContext = 0.9f;
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline FPredictionResult GetCurrentPrediction() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline FString GetContextAsString() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Adaptation")
+	inline float GetAccuracy() const;
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
+public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogTable() const;
 
@@ -159,32 +193,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogAccuracy() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Adaptation")
-	void GradePrediction(EPlayerAction Action);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Adaptation|Tuning", meta = (ClampMin = "0.5", ClampMax = "1.0"))
-	float DecayPerNewContext = 0.9f;
-	
-	UFUNCTION(BlueprintCallable, Category = "Adaptation")
-	inline FPredictionResult GetCurrentPrediction() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "Adaptation")
-	inline FString GetContextAsString() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "Adaptation")
-	inline float GetAccuracy() const;
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	
 private:
-
 	void CloseTrackingWindow();
 	void Predict(const FPlayerActionContext& Context);
 
 	bool bIsWindowOpen = false;
-	FPlayerActionContext CurrentContext;
+	FPlayerActionContext CurrentContext; 
 	float WindowTime = 0.f;
 	TMap<FPlayerActionContext, FActionCounts> TableOfContext{};
 	float CurrentConfidence = 0.f;
@@ -193,6 +207,4 @@ private:
 	float TotalCorrectPredictions = 0.f;
 	float TotalPredictions = 0.f;
 	float Accuracy = 0.f;
-
-		
 };

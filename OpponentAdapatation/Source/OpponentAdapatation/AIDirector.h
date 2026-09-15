@@ -7,9 +7,10 @@
 #include "AIDirector.generated.h"
 
 
+struct FBossAttack;
+class UAttackTerm;
 class UPlayerAdaptation;
 struct FFightContext;
-enum class EBossAttacks : uint8;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OPPONENTADAPATATION_API UAIDirector : public UActorComponent
@@ -21,7 +22,7 @@ public:
 	UAIDirector();
 	
 	UFUNCTION(BlueprintCallable, Category = "Director")
-	EBossAttacks ChooseNextAttack(const FFightContext& Context);
+	int32 ChooseNextAttack(const FFightContext& Context);
 
 protected:
 	// Called when the game starts
@@ -33,5 +34,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	UPROPERTY(EditAnywhere, Instanced, Category = "Scoring")
+	TArray<TObjectPtr<UAttackTerm>> Terms;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	TArray<FBossAttack> ValidAttacks;
 		
 };

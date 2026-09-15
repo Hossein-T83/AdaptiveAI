@@ -3,6 +3,7 @@
 
 #include "AIDirector.h"
 
+#include "AttackTerm.h"
 #include "PlayerAdaptation.h"
 
 // Sets default values for this component's properties
@@ -15,14 +16,29 @@ UAIDirector::UAIDirector()
 	// ...
 }
 
-EBossAttacks UAIDirector::ChooseNextAttack(const FFightContext& Context)
+int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 {
-	uint8 RandAttack = FMath::RandRange(0, static_cast<int8>(EBossAttacks::Count));
+	int32 HighestScoreId = 0;
+	float HighestScore = 0.0f;
+	
 	if (Model)
 	{
-		Model->OpenTrackingWindow(FPlayerActionContext{Context, RandAttack}, 1.5f);
+		for (const auto& Attack : ValidAttacks)
+		{
+			float FinalScore = 0.f;
+			for (const auto& Term : Terms)
+			{
+				FinalScore += Term->Score(Attack, Context) * Term->Weight;
+			}
+			if (FinalScore > HighestScore)
+			{
+				HighestScore = FinalScore;
+				HighestScoreId = Attack.Id;
+			}
+		}
+		Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f);
 	}
-	return static_cast<EBossAttacks>(RandAttack);
+	return HighestScoreId;
 }
 
 
