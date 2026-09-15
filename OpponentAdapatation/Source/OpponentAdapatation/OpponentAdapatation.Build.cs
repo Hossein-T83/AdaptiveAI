@@ -17,6 +17,7 @@ public class OpponentAdapatation : ModuleRules
 			"AIModule",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
+			"GameplayTags",
 			"UMG",
 			"Slate"
 		});

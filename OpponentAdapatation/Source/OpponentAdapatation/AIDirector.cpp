@@ -21,19 +21,32 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 	int32 HighestScoreId = 0;
 	float HighestScore = 0.0f;
 	
+	
 	if (Model)
 	{
 		for (const auto& Attack : ValidAttacks)
 		{
+			const auto& Prediction = Model->Predict(FPlayerActionContext(Context, Attack.Id));
 			float FinalScore = 0.f;
-			for (const auto& Term : Terms)
+			if (Prediction.Confidence > Model->ConfidenceThreshold)
 			{
-				FinalScore += Term->Score(Attack, Context) * Term->Weight;
+				if (Attack.PunishableActions.Find(Prediction.Action))
+				{
+					FinalScore += 10 * Prediction.Confidence;
+				}
+			}
+			for (const auto& Tag  : Context.Tags)
+			{
+				if (const float* Found = Attack.Weights.Find(Tag))
+				{
+					FinalScore += *Found;
+				}
 			}
 			if (FinalScore > HighestScore)
 			{
 				HighestScore = FinalScore;
 				HighestScoreId = Attack.Id;
+				Model->UpdateCurrentPrediction(Prediction);
 			}
 		}
 		Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f);

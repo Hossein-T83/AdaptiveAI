@@ -6,6 +6,7 @@
 #include "AttackTerm.h"
 #include "DistanceTerm.generated.h"
 
+struct FGameplayTag;
 /**
  * 
  */

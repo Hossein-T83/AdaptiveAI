@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "PlayerAdaptation.generated.h"
-
 
 UENUM(BlueprintType)
 enum class EPlayerAction : uint8
@@ -31,26 +31,36 @@ enum class EDistance : uint8
 	Count UMETA(Hidden)
 };
 
+UENUM(BlueprintType)
+enum class EHealthBucket : uint8
+{
+	Low,
+	Medium,
+	High,
+	Count UMETA(Hidden)
+};
+
 USTRUCT(BlueprintType)
 struct FBossAttack
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	int32 Id = 0;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	FName AttackName;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float Cooldown = 2.f;
 	
-	UPROPERTY(EditAnywhere, Category = "Score")
-	TMap<EDistance, float> DistanceScores;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score", meta = (Categories = "Score"))
+	TMap<FGameplayTag, float> Weights;
 	
-	UPROPERTY(EditAnywhere, Category = "Score")
-	TMap<uint8, float> HealthScores;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	TArray<EPlayerAction> PunishableActions;
 };
+
 
 USTRUCT(BlueprintType)
 struct FFightContext
@@ -58,26 +68,14 @@ struct FFightContext
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	EDistance Distance = EDistance::Medium;
-	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	uint8 HealthBucket = 3;
-
-	FString ToString() const
-	{
-		return FString::Printf(TEXT("Distance=%d, HealthBucket=%d"),
-		                       static_cast<uint8>(Distance), HealthBucket);
-	}
+	FGameplayTagContainer Tags;
+	
 
 	bool operator==(const FFightContext& Other) const
 	{
-		return Distance == Other.Distance
-			&& HealthBucket == Other.HealthBucket;
+		return Tags == Other.Tags;
 	}
 
-	friend uint32 GetTypeHash(const FFightContext& C)
-	{
-		return HashCombine(GetTypeHash(C.Distance), GetTypeHash(C.HealthBucket));
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -93,18 +91,26 @@ struct FPlayerActionContext
 
 	FString ToString() const
 	{
-		return FString::Printf(TEXT("%s, BossAction=%d"), *Combat.ToString(), BossAction);
+		return FString::Printf(TEXT("%s, BossAction=%d"), *Combat.Tags.ToString(), BossAction);
 	}
-
 	bool operator==(const FPlayerActionContext& Other) const
 	{
-		return Combat == Other.Combat && BossAction == Other.BossAction;
+		return Combat.Tags == Other.Combat.Tags && BossAction == Other.BossAction;
 	}
-
+	
+	//Claude
 	friend uint32 GetTypeHash(const FPlayerActionContext& C)
 	{
-		return HashCombine(GetTypeHash(C.Combat), GetTypeHash(C.BossAction));
+		uint32 TagsHash = 0;
+		for (const FGameplayTag& Tag : C.Combat.Tags)
+		{
+			// XOR is commutative, so insertion order doesn't affect the result
+			TagsHash ^= GetTypeHash(Tag);
+		}
+
+		return HashCombine(TagsHash, GetTypeHash(C.BossAction));
 	}
+	
 };
 
 USTRUCT(BlueprintType)
@@ -178,6 +184,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline float GetAccuracy() const;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
+	float ConfidenceThreshold = 0.7f;
+	
+	FPredictionResult Predict(const FPlayerActionContext& Context);
+	
+	void UpdateCurrentPrediction(const FPredictionResult& Prediction);
 
 protected:
 	// Called when the game starts
@@ -195,7 +208,6 @@ public:
 
 private:
 	void CloseTrackingWindow();
-	void Predict(const FPlayerActionContext& Context);
 
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext; 
@@ -203,7 +215,6 @@ private:
 	TMap<FPlayerActionContext, FActionCounts> TableOfContext{};
 	float CurrentConfidence = 0.f;
 	FPredictionResult CurrentPrediction;
-	float ConfidenceThreshold = 0.7f;
 	float TotalCorrectPredictions = 0.f;
 	float TotalPredictions = 0.f;
 	float Accuracy = 0.f;

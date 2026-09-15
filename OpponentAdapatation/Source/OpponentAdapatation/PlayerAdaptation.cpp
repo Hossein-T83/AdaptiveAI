@@ -23,8 +23,6 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 	bIsWindowOpen = true;
 	CurrentContext = Context;
 	WindowTime = WindowSeconds;
-
-	Predict(CurrentContext);
 }
 
 void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
@@ -129,15 +127,15 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	LogAccuracy();
 }
 
-void UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
+FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
+	FPredictionResult TempPrediction;
 	if (!TableOfContext.Contains(Context))
 	{
-		CurrentConfidence = 0.f;
-		CurrentPrediction = FPredictionResult(EPlayerAction::None, CurrentConfidence);
-		return;
+		TempPrediction = FPredictionResult(EPlayerAction::None, CurrentConfidence);
+		return TempPrediction;
 	}
 	auto& ActionHistory = TableOfContext[Context];
 	auto& AllWeights = ActionHistory.Weights;
@@ -150,14 +148,21 @@ void UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
 			BestIndex = Index;
 		}
 	}
-
-	CurrentConfidence = BestWeight / ActionHistory.Total;
-	CurrentPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), CurrentConfidence);
+	
+	TempPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), BestWeight / ActionHistory.Total);
 
 	if (CurrentPrediction.Confidence > ConfidenceThreshold)
 	{
 		TotalPredictions += 1.f;
 	}
+
+	return TempPrediction;
+}
+
+void UPlayerAdaptation::UpdateCurrentPrediction(const FPredictionResult& Prediction)
+{
+	CurrentPrediction = Prediction;
+	CurrentConfidence = Prediction.Confidence;
 }
 
 

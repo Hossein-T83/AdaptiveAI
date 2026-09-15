@@ -7,6 +7,5 @@
 
 float UDistanceTerm::Score_Implementation(const FBossAttack& Attack, const FFightContext& Context) const
 {
-	const float* ScoreFound = Attack.DistanceScores.Find(Context.Distance);
-	return ScoreFound ? *ScoreFound : 0.f;
+	return 0;
 }
