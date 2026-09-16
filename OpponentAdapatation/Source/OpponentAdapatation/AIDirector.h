@@ -40,5 +40,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TArray<FBossAttack> ValidAttacks;
-		
+	
+	TArray<FBossAttack> AttacksOnCooldown;
+	
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	bool AdaptationEnabled = true;
 };

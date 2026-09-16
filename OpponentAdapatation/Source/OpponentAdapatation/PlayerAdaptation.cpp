@@ -32,6 +32,8 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 		return;
 	}
 
+	GradePrediction(Action);
+	
 	bIsWindowOpen = false;
 	FActionCounts& ActionRef = TableOfContext.FindOrAdd(CurrentContext);
 
@@ -78,6 +80,7 @@ void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 {
 	if (CurrentPrediction.Confidence > ConfidenceThreshold)
 	{
+		TotalPredictions += 1.f;
 		if (Action == CurrentPrediction.Action)
 		{
 			TotalCorrectPredictions += 1.f;
@@ -89,7 +92,7 @@ void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 		}
 	}
 
-	Accuracy = TotalCorrectPredictions / TotalPredictions;
+	Accuracy = TotalPredictions > 0 ? TotalCorrectPredictions / TotalPredictions : 0.f;
 }
 
 FPredictionResult UPlayerAdaptation::GetCurrentPrediction() const
@@ -119,7 +122,6 @@ void UPlayerAdaptation::BeginPlay()
 void UPlayerAdaptation::CloseTrackingWindow()
 {
 	RecordPlayerAction(EPlayerAction::None);
-	GradePrediction(EPlayerAction::None);
 	bIsWindowOpen = false;
 	
 	LogTable();
@@ -131,11 +133,11 @@ FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
-	FPredictionResult TempPrediction;
+	FPredictionResult NewPrediction;
 	if (!TableOfContext.Contains(Context))
 	{
-		TempPrediction = FPredictionResult(EPlayerAction::None, CurrentConfidence);
-		return TempPrediction;
+		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
+		return NewPrediction;
 	}
 	auto& ActionHistory = TableOfContext[Context];
 	auto& AllWeights = ActionHistory.Weights;
@@ -149,14 +151,11 @@ FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context
 		}
 	}
 	
-	TempPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), BestWeight / ActionHistory.Total);
-
-	if (CurrentPrediction.Confidence > ConfidenceThreshold)
-	{
-		TotalPredictions += 1.f;
-	}
-
-	return TempPrediction;
+	const float SampleScale = FMath::Clamp(
+		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
+	
+	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), (BestWeight / ActionHistory.Total) * SampleScale);
+	return NewPrediction;
 }
 
 void UPlayerAdaptation::UpdateCurrentPrediction(const FPredictionResult& Prediction)

@@ -54,11 +54,18 @@ struct FBossAttack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float Cooldown = 2.f;
 	
+	float Timer = 0.f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score", meta = (Categories = "Score"))
 	TMap<FGameplayTag, float> Weights;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	TArray<EPlayerAction> PunishableActions;
+	
+	bool operator==(const FBossAttack& Other) const
+	{
+		return Id == Other.Id;
+	}
 };
 
 
@@ -181,12 +188,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline FString GetContextAsString() const;
-
+ 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline float GetAccuracy() const;
 	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ConfidenceThreshold = 0.7f;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning")
+	int32 MinSamplesForConfidence = 5.f;
 	
 	FPredictionResult Predict(const FPlayerActionContext& Context);
 	

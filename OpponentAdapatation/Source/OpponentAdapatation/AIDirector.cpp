@@ -19,37 +19,45 @@ UAIDirector::UAIDirector()
 int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 {
 	int32 HighestScoreId = 0;
-	float HighestScore = 0.0f;
+	float HighestScore = -FLT_MAX;
 	
 	
 	if (Model)
 	{
-		for (const auto& Attack : ValidAttacks)
+		if (ValidAttacks.Num() > 0)
 		{
-			const auto& Prediction = Model->Predict(FPlayerActionContext(Context, Attack.Id));
-			float FinalScore = 0.f;
-			if (Prediction.Confidence > Model->ConfidenceThreshold)
+			for (const auto& Attack : ValidAttacks)
 			{
-				if (Attack.PunishableActions.Find(Prediction.Action))
+				const auto& Prediction = Model->Predict(FPlayerActionContext(Context, Attack.Id));
+				float FinalScore = 0.f;
+				if (AdaptationEnabled && Prediction.Confidence > Model->ConfidenceThreshold)
 				{
-					FinalScore += 10 * Prediction.Confidence;
+					if (Attack.PunishableActions.Contains(Prediction.Action))
+					{
+						FinalScore += 10 * Prediction.Confidence;
+					}
+				}
+				for (const auto& Tag  : Context.Tags)
+				{
+					if (const float* Found = Attack.Weights.Find(Tag))
+					{
+						FinalScore += *Found;
+					}
+				}
+				if (FinalScore > HighestScore)
+				{
+					HighestScore = FinalScore;
+					HighestScoreId = Attack.Id;
+					Model->UpdateCurrentPrediction(Prediction);
 				}
 			}
-			for (const auto& Tag  : Context.Tags)
-			{
-				if (const float* Found = Attack.Weights.Find(Tag))
-				{
-					FinalScore += *Found;
-				}
-			}
-			if (FinalScore > HighestScore)
-			{
-				HighestScore = FinalScore;
-				HighestScoreId = Attack.Id;
-				Model->UpdateCurrentPrediction(Prediction);
-			}
+			Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f /*Delay can be calculated or given by user*/);
+		
+			const auto* ChosenAttack = ValidAttacks.FindByPredicate(
+		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
+			AttacksOnCooldown.Add(*ChosenAttack);
+			ValidAttacks.Remove(*ChosenAttack);
 		}
-		Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f);
 	}
 	return HighestScoreId;
 }
@@ -67,6 +75,19 @@ void UAIDirector::BeginPlay()
 void UAIDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	for (int32 i = AttacksOnCooldown.Num() - 1; i >= 0; --i)
+	{
+		FBossAttack& Attack = AttacksOnCooldown[i];
+		Attack.Timer += DeltaTime;
+
+		if (Attack.Timer >= Attack.Cooldown)
+		{
+			Attack.Timer = 0.f;
+			ValidAttacks.Add(Attack);
+			AttacksOnCooldown.RemoveAt(i);
+		}
+	}
 
 	// ...
 }
