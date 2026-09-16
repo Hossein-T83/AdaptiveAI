@@ -53,10 +53,14 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 			}
 			Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f /*Delay can be calculated or given by user*/);
 		
-			const auto* ChosenAttack = ValidAttacks.FindByPredicate(
+			const auto* Found = ValidAttacks.FindByPredicate(
 		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
-			AttacksOnCooldown.Add(*ChosenAttack);
-			ValidAttacks.Remove(*ChosenAttack);
+			if (Found)
+			{
+				const FBossAttack ChosenAttack = *Found;
+				AttacksOnCooldown.Add(ChosenAttack);
+				ValidAttacks.Remove(ChosenAttack);
+			}
 		}
 	}
 	return HighestScoreId;
