@@ -80,8 +80,6 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 	void Dodge(const FInputActionValue& Value);
-	
-	EPlayerAction LastAction;
 
 public:
 

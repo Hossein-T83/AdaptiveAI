@@ -38,8 +38,9 @@ void FGameplayDebuggerCategory_Adaptation::CollectData(APlayerController* OwnerP
 void FGameplayDebuggerCategory_Adaptation::DrawData(APlayerController* OwnerPC, FGameplayDebuggerCanvasContext& CanvasContext)
 {
 	CanvasContext.Printf(TEXT("{green}Context: {white}%s"), *Data.Context);
-	CanvasContext.Printf(TEXT("{green}Prediction: {white}%s  {yellow}%.0f%%"),
-		*Data.PredictedAction, Data.Confidence * 100.f);
+	CanvasContext.Printf(TEXT("{green}Prediction: {white}%s"),
+		*Data.PredictedAction);
+	CanvasContext.Printf(TEXT("{green}Confidence: {yellow}%.0f%%"),Data.Confidence * 100.f);
 	CanvasContext.Printf(TEXT("{green}Accuracy: {white}%.0f%%"),
 		Data.Accuracy * 100.f);
 

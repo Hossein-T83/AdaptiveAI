@@ -15,10 +15,13 @@ enum class EPlayerAction : uint8
 	DodgeRight,
 	DodgeBack,
 	DodgeForward,
-	MoveLeft,
-	MoveRight,
-	MoveBack,
-	MoveForward,
+	Parry,
+	Block,
+	RollLeft,
+	RollRight,
+	RollBack,
+	RollForward,
+	Jump,
 	Count UMETA(Hidden)
 };
 

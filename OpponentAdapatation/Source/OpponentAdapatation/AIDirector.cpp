@@ -63,6 +63,8 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 			}
 		}
 	}
+	
+	
 	return HighestScoreId;
 }
 

@@ -57,8 +57,8 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AOpponentAdapatationCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AOpponentAdapatationCharacter::StopJumping);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this,
@@ -161,34 +161,6 @@ void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 		// Broadcasting direction
 		const FVector WorldDirection = (ForwardDirection * Forward) + (RightDirection * Right);
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(WorldDirection);
-		EPlayerAction Action;
-		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
-		{
-			if (Local.Y > 0)
-			{
-				Action = EPlayerAction::MoveRight;
-			}
-			else
-			{
-				Action = EPlayerAction::MoveLeft;
-			}
-		}
-		else
-		{
-			if (Local.X > 0)
-			{
-				Action = EPlayerAction::MoveForward;
-			}
-			else
-			{
-				Action = EPlayerAction::MoveBack;
-			}
-		}
-		if (Action != LastAction)
-		{
-			LastAction = Action;
-			OnPlayerActionRecorded.Broadcast(Action);
-		}
 	}
 }
 
@@ -206,6 +178,7 @@ void AOpponentAdapatationCharacter::DoJumpStart()
 {
 	// signal the character to jump
 	Jump();
+	OnPlayerActionRecorded.Broadcast(EPlayerAction::Jump);
 }
 
 void AOpponentAdapatationCharacter::DoJumpEnd()
