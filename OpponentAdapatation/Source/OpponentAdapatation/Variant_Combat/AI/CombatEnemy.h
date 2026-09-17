@@ -49,6 +49,9 @@ public:
 	/** Max amount of HP the character will have on respawn */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
 	float MaxHP = 3.0f;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Distance")
+	float DistanceToPlayer = 0.f;
 
 protected:
 

@@ -313,6 +313,11 @@ EStateTreeRunStatus FStateTreeGetPlayerInfoTask::Tick(FStateTreeExecutionContext
 
 	// update the distance
 	InstanceData.DistanceToTarget = FVector::Distance(InstanceData.TargetPlayerLocation, InstanceData.Character->GetActorLocation());
+	
+	if (ACombatEnemy* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
+	{
+		Enemy->DistanceToPlayer = InstanceData.DistanceToTarget;
+	}
 
 	return EStateTreeRunStatus::Running;
 }
