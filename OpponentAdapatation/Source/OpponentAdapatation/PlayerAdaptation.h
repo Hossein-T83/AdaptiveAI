@@ -56,15 +56,15 @@ struct FBossAttack
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float Cooldown = 2.f;
-	
+
 	float Timer = 0.f;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score", meta = (Categories = "Score"))
 	TMap<FGameplayTag, float> Weights;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	TArray<EPlayerAction> PunishableActions;
-	
+
 	bool operator==(const FBossAttack& Other) const
 	{
 		return Id == Other.Id;
@@ -79,13 +79,13 @@ struct FFightContext
 
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	FGameplayTagContainer Tags;
-	
+
 
 	bool operator==(const FFightContext& Other) const
 	{
-		return Tags == Other.Tags;
+		return (Tags.Num() == Other.Tags.Num()
+			&& Tags.HasAllExact(Other.Tags));
 	}
-
 };
 
 USTRUCT(BlueprintType)
@@ -103,11 +103,14 @@ struct FPlayerActionContext
 	{
 		return FString::Printf(TEXT("%s, BossAction=%d"), *Combat.Tags.ToString(), BossAction);
 	}
+
 	bool operator==(const FPlayerActionContext& Other) const
 	{
-		return Combat.Tags == Other.Combat.Tags && BossAction == Other.BossAction;
+		return BossAction == Other.BossAction
+			&& Combat.Tags.Num() == Other.Combat.Tags.Num()
+			&& Combat.Tags.HasAllExact(Other.Combat.Tags);
 	}
-	
+
 	//Claude
 	friend uint32 GetTypeHash(const FPlayerActionContext& C)
 	{
@@ -120,7 +123,6 @@ struct FPlayerActionContext
 
 		return HashCombine(TagsHash, GetTypeHash(C.BossAction));
 	}
-	
 };
 
 USTRUCT(BlueprintType)
@@ -191,18 +193,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline FString GetContextAsString() const;
- 
+
 	UFUNCTION(BlueprintCallable, Category = "Adaptation")
 	inline float GetAccuracy() const;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ConfidenceThreshold = 0.7f;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning")
 	int32 MinSamplesForConfidence = 5.f;
-	
+
 	FPredictionResult Predict(const FPlayerActionContext& Context);
-	
+
 	void UpdateCurrentPrediction(const FPredictionResult& Prediction);
 
 protected:
@@ -223,7 +226,7 @@ private:
 	void CloseTrackingWindow();
 
 	bool bIsWindowOpen = false;
-	FPlayerActionContext CurrentContext; 
+	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
 	TMap<FPlayerActionContext, FActionCounts> TableOfContext{};
 	float CurrentConfidence = 0.f;
