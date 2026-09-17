@@ -45,6 +45,10 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 
 	ActionRef.Weights[static_cast<int32>(Action)] += 1.f;
 	ActionRef.Total += 1.f;
+
+	LogCurrentContext();
+	LogPrediction();
+	LogAccuracy();
 }
 
 void UPlayerAdaptation::LogTable() const
@@ -70,16 +74,19 @@ void UPlayerAdaptation::LogCurrentContext() const
 {
 	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
 	const auto& History = TableOfContext.Find(CurrentContext);
-	UE_LOG(LogTemp, Log, TEXT("Context: %s"), *CurrentContext.ToString());
-	for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
+	if (TableOfContext.Contains(CurrentContext))
 	{
-		EPlayerAction Action = static_cast<EPlayerAction>(i);
-		float Weight = History->Weights[i];
-		float Confidence = 0;
-		UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
-	}
+		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *CurrentContext.ToString());
+		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
+		{
+			EPlayerAction Action = static_cast<EPlayerAction>(i);
+			float Weight = History->Weights[i];
+			float Confidence = 0;
+			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
+		}
 
-	UE_LOG(LogTemp, Log, TEXT(""));
+		UE_LOG(LogTemp, Log, TEXT(""));
+	}
 }
 
 void UPlayerAdaptation::LogPrediction() const
