@@ -215,6 +215,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogTable() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
+	void LogCurrentContext() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogPrediction() const;

@@ -33,7 +33,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	}
 
 	GradePrediction(Action);
-	
+
 	bIsWindowOpen = false;
 	FActionCounts& ActionRef = TableOfContext.FindOrAdd(CurrentContext);
 
@@ -41,7 +41,7 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	{
 		Weight *= DecayPerNewContext;
 	}
-    ActionRef.Total *= DecayPerNewContext;
+	ActionRef.Total *= DecayPerNewContext;
 
 	ActionRef.Weights[static_cast<int32>(Action)] += 1.f;
 	ActionRef.Total += 1.f;
@@ -66,14 +66,32 @@ void UPlayerAdaptation::LogTable() const
 	UE_LOG(LogTemp, Log, TEXT(""));
 }
 
+void UPlayerAdaptation::LogCurrentContext() const
+{
+	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
+	const auto& History = TableOfContext.Find(CurrentContext);
+	UE_LOG(LogTemp, Log, TEXT("Context: %s"), *CurrentContext.ToString());
+	for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
+	{
+		EPlayerAction Action = static_cast<EPlayerAction>(i);
+		float Weight = History->Weights[i];
+		float Confidence = 0;
+		UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT(""));
+}
+
 void UPlayerAdaptation::LogPrediction() const
 {
-	UE_LOG(LogTemp, Log, TEXT("Current Prediction: Action: %s, Confidence: %.2f"), *UEnum::GetValueAsString(CurrentPrediction.Action), CurrentPrediction.Confidence);
+	UE_LOG(LogTemp, Log, TEXT("Current Prediction: Action: %s, Confidence: %.2f"),
+	       *UEnum::GetValueAsString(CurrentPrediction.Action), CurrentPrediction.Confidence);
 }
 
 void UPlayerAdaptation::LogAccuracy() const
 {
-	UE_LOG(LogTemp, Log, TEXT("Prediction Accuracy: %.2f%% (%d/%d)"), Accuracy * 100.f, static_cast<int32>(TotalCorrectPredictions), static_cast<int32>(TotalPredictions));
+	UE_LOG(LogTemp, Log, TEXT("Prediction Accuracy: %.2f%% (%d/%d)"), Accuracy * 100.f,
+	       static_cast<int32>(TotalCorrectPredictions), static_cast<int32>(TotalPredictions));
 }
 
 void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
@@ -84,11 +102,14 @@ void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 		if (Action == CurrentPrediction.Action)
 		{
 			TotalCorrectPredictions += 1.f;
-			UE_LOG(LogTemp, Log, TEXT("Prediction correct! Action: %s, Confidence: %.2f"), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
+			UE_LOG(LogTemp, Log, TEXT("Prediction correct! Action: %s, Confidence: %.2f"),
+			       *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("Prediction incorrect. Predicted: %s, Actual: %s, Confidence: %.2f"), *UEnum::GetValueAsString(CurrentPrediction.Action), *UEnum::GetValueAsString(Action), CurrentPrediction.Confidence);
+			UE_LOG(LogTemp, Log, TEXT("Prediction incorrect. Predicted: %s, Actual: %s, Confidence: %.2f"),
+			       *UEnum::GetValueAsString(CurrentPrediction.Action), *UEnum::GetValueAsString(Action),
+			       CurrentPrediction.Confidence);
 		}
 	}
 
@@ -116,14 +137,13 @@ void UPlayerAdaptation::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-
 }
 
 void UPlayerAdaptation::CloseTrackingWindow()
 {
 	RecordPlayerAction(EPlayerAction::None);
 	bIsWindowOpen = false;
-	
+
 	LogTable();
 	LogPrediction();
 	LogAccuracy();
@@ -150,11 +170,12 @@ FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context
 			BestIndex = Index;
 		}
 	}
-	
+
 	const float SampleScale = FMath::Clamp(
 		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
-	
-	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex), (BestWeight / ActionHistory.Total) * SampleScale);
+
+	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
+	                                  (BestWeight / ActionHistory.Total) * SampleScale);
 	return NewPrediction;
 }
 
@@ -166,7 +187,8 @@ void UPlayerAdaptation::UpdateCurrentPrediction(const FPredictionResult& Predict
 
 
 // Called every frame
-void UPlayerAdaptation::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UPlayerAdaptation::TickComponent(float DeltaTime, ELevelTick TickType,
+                                      FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -181,4 +203,3 @@ void UPlayerAdaptation::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		CloseTrackingWindow();
 	}
 }
-
