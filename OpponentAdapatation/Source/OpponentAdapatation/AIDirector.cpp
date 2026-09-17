@@ -3,7 +3,7 @@
 
 #include "AIDirector.h"
 
-#include "AttackTerm.h"
+#include "RuleSet.h"
 #include "PlayerAdaptation.h"
 
 // Sets default values for this component's properties
@@ -66,6 +66,12 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 	
 	
 	return HighestScoreId;
+}
+
+float UAIDirector::CalculateFinalDelay(const FFightContext& Context) const
+{
+	const float Multiplier = Rule->Score_Implementation(Context);
+	return BaseDelay * Multiplier;
 }
 
 

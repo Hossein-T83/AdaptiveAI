@@ -8,7 +8,7 @@
 
 
 struct FBossAttack;
-class UAttackTerm;
+class URuleSet;
 class UPlayerAdaptation;
 struct FFightContext;
 
@@ -23,6 +23,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Director")
 	int32 ChooseNextAttack(const FFightContext& Context);
+	UFUNCTION(BlueprintCallable, Category = "Director")
+	float CalculateFinalDelay(const FFightContext& Context) const;
 
 protected:
 	// Called when the game starts
@@ -35,8 +37,11 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	UPROPERTY(EditAnywhere, Instanced, Category = "Scoring")
-	TArray<TObjectPtr<UAttackTerm>> Terms;
+	UPROPERTY(EditAnywhere, Instanced, Category = "Rules")
+	TObjectPtr<URuleSet> Rule;
+	
+	UPROPERTY(EditAnywhere, Category = "Rules")
+	float BaseDelay;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TArray<FBossAttack> ValidAttacks;
