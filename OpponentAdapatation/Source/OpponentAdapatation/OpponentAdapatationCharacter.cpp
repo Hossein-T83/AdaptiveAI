@@ -73,6 +73,9 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		//Dodge
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::Dodge);
+		
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this,
+										   &AOpponentAdapatationCharacter::Roll);
 	}
 	else
 	{
@@ -135,6 +138,46 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 			else
 			{
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeBack);
+			}
+		}
+	}
+}
+
+void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
+{
+	if (GetController() != nullptr)
+	{
+		FVector Direction = GetLastMovementInputVector();
+		if (Direction.IsNearlyZero())
+		{
+			Direction = -GetActorForwardVector();
+		}
+		Direction.Normalize();
+
+		//PlayAnimMontage();
+		LaunchCharacter(Direction * 1600, true, true);
+
+		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
+		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
+		{
+			if (Local.Y > 0)
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollRight);
+			}
+			else
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollLeft);
+			}
+		}
+		else
+		{
+			if (Local.X > 0)
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollForward);
+			}
+			else
+			{
+				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollBack);
 			}
 		}
 	}

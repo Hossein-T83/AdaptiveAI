@@ -151,7 +151,7 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	RecordPlayerAction(EPlayerAction::None);
 	bIsWindowOpen = false;
 
-	LogTable();
+	LogCurrentContext();
 	LogPrediction();
 	LogAccuracy();
 }

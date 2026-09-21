@@ -54,6 +54,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* DodgeAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* RollAction;
 
 public:
 
@@ -80,6 +83,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 	void Dodge(const FInputActionValue& Value);
+	
+	void Roll(const FInputActionValue& Value);
 
 public:
 
