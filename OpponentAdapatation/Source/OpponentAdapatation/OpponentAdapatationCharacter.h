@@ -57,6 +57,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* RollAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* RunAction;
+	
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> DashMontage;
 
 public:
 	/** Constructor */
@@ -83,6 +89,9 @@ protected:
 	void Dodge(const FInputActionValue& Value);
 
 	void Roll(const FInputActionValue& Value);
+	
+	void RunStart(const FInputActionValue& Value);
+	void RunEnd(const FInputActionValue& Value);
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */

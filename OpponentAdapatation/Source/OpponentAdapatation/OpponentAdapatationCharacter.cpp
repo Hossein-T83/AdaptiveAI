@@ -73,11 +73,17 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		                                   &AOpponentAdapatationCharacter::Look);
 
 		//Dodge
-		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this,
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Dodge);
 
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::Roll);
+
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::RunStart);
+		
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this,
+										   &AOpponentAdapatationCharacter::RunEnd);
 	}
 	else
 	{
@@ -119,15 +125,16 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 	{
 		if (Stamina - DodgeCost < 0) return;
 		Stamina -= DodgeCost;
-		
+
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
 		{
 			Direction = -GetActorForwardVector();
 		}
 		Direction.Normalize();
-
-		LaunchCharacter(Direction * 1600, true, true);
+		SetActorRotation(Direction.Rotation());
+		PlayAnimMontage(DashMontage);
+		//LaunchCharacter(Direction * 1600, true, true);
 
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
@@ -161,7 +168,7 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 	{
 		if (Stamina - RollCost < 0) return;
 		Stamina -= RollCost;
-		
+
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
 		{
@@ -196,6 +203,16 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 			}
 		}
 	}
+}
+
+void AOpponentAdapatationCharacter::RunStart(const FInputActionValue& Value)
+{
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+}
+
+void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
+{
+	GetCharacterMovement()->MaxWalkSpeed = 200.f;
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
