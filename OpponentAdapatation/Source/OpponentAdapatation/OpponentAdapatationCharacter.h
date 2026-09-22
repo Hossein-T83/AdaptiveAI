@@ -15,6 +15,7 @@ class UInputAction;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerActionRecorded, EPlayerAction, Action);
 
 /**
@@ -33,9 +34,8 @@ class AOpponentAdapatationCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
-protected:
 
+protected:
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* JumpAction;
@@ -51,43 +51,40 @@ protected:
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* MouseLookAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* DodgeAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* RollAction;
 
 public:
-
 	/** Constructor */
 	AOpponentAdapatationCharacter();
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
 	EPlayerAction CurrentPlayerAction;
-	
+
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Adaptation")
 	FOnPlayerActionRecorded OnPlayerActionRecorded;
 
 protected:
-
 	/** Initialize input action bindings */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
-
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-	
+
 	void Dodge(const FInputActionValue& Value);
-	
+
 	void Roll(const FInputActionValue& Value);
 
 public:
-
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
@@ -105,11 +102,25 @@ public:
 	virtual void DoJumpEnd();
 
 public:
-
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-};
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float MaxHealth = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float Health = MaxHealth;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float MaxStamina = 75.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float Stamina = MaxStamina;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float DodgeCost = 15.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float RollCost = 15.0f;
+};

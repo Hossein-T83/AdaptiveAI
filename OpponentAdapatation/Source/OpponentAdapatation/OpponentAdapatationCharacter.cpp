@@ -57,8 +57,10 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AOpponentAdapatationCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AOpponentAdapatationCharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this,
+		                                   &AOpponentAdapatationCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this,
+		                                   &AOpponentAdapatationCharacter::StopJumping);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this,
@@ -73,9 +75,9 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		//Dodge
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::Dodge);
-		
+
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this,
-										   &AOpponentAdapatationCharacter::Roll);
+		                                   &AOpponentAdapatationCharacter::Roll);
 	}
 	else
 	{
@@ -84,6 +86,13 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 			       "'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."
 		       ), *GetNameSafe(this));
 	}
+}
+
+void AOpponentAdapatationCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (Stamina + DeltaTime < MaxStamina)
+		Stamina += DeltaTime * 2.f;
 }
 
 void AOpponentAdapatationCharacter::Move(const FInputActionValue& Value)
@@ -108,6 +117,9 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
 	if (GetController() != nullptr)
 	{
+		if (Stamina - DodgeCost < 0) return;
+		Stamina -= DodgeCost;
+		
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
 		{
@@ -147,6 +159,9 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 {
 	if (GetController() != nullptr)
 	{
+		if (Stamina - RollCost < 0) return;
+		Stamina -= RollCost;
+		
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
 		{
@@ -200,7 +215,7 @@ void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 		// add movement 
 		AddMovementInput(ForwardDirection, Forward);
 		AddMovementInput(RightDirection, Right);
-		
+
 		// Broadcasting direction
 		const FVector WorldDirection = (ForwardDirection * Forward) + (RightDirection * Right);
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(WorldDirection);
