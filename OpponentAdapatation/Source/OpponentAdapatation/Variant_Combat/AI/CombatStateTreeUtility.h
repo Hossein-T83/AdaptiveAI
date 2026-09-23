@@ -363,3 +363,40 @@ struct FStateTreeGetPlayerInfoTask : public FStateTreeTaskCommonBase
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif // WITH_EDITOR
 };
+
+USTRUCT()
+struct FStateTreeWalkAroundInstanceData
+{
+	GENERATED_BODY()
+
+	/** Character that owns this task */
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<ACharacter> Character;
+	
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AAIController> Controller;
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<ACharacter> TargetPlayerCharacter;
+
+};
+
+/**
+ *  StateTree task to get information about the player character
+ */
+USTRUCT(meta=(DisplayName="WalkAround", Category="Combat"))
+struct FStateTreeWalkAroundTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	/* Ensure we're using the correct instance data struct */
+	using FInstanceDataType = FStateTreeWalkAroundInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	/** Runs while the owning state is active */
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context,const FStateTreeTransitionResult& Transition) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif // WITH_EDITOR
+};

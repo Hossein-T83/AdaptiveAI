@@ -23,7 +23,10 @@ bool FStateTreeCharacterGroundedCondition::TestCondition(FStateTreeExecutionCont
 }
 
 #if WITH_EDITOR
-FText FStateTreeCharacterGroundedCondition::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeCharacterGroundedCondition::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                           const IStateTreeBindingLookup& BindingLookup,
+                                                           EStateTreeNodeFormatting Formatting
+                                                           /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Is Character Grounded</b>");
 }
@@ -39,12 +42,14 @@ bool FStateTreeIsInDangerCondition::TestCondition(FStateTreeExecutionContext& Co
 	if (InstanceData.Character)
 	{
 		// is the last detected danger event within the reaction threshold?
-		const float ReactionDelta = InstanceData.Character->GetWorld()->GetTimeSeconds() - InstanceData.Character->GetLastDangerTime();
+		const float ReactionDelta = InstanceData.Character->GetWorld()->GetTimeSeconds() - InstanceData.Character->
+			GetLastDangerTime();
 
 		if (ReactionDelta < InstanceData.MaxReactionTime && ReactionDelta > InstanceData.MinReactionTime)
 		{
 			// do a dot product check to determine if the danger location is within the character's detection cone
-			const FVector DangerDir = (InstanceData.Character->GetLastDangerLocation() - InstanceData.Character->GetActorLocation()).GetSafeNormal2D();
+			const FVector DangerDir = (InstanceData.Character->GetLastDangerLocation() - InstanceData.Character->
+				GetActorLocation()).GetSafeNormal2D();
 
 			const float DangerDot = FVector::DotProduct(DangerDir, InstanceData.Character->GetActorForwardVector());
 			const float ConeAngleCos = FMath::Cos(FMath::DegreesToRadians(InstanceData.DangerSightConeAngle));
@@ -57,7 +62,10 @@ bool FStateTreeIsInDangerCondition::TestCondition(FStateTreeExecutionContext& Co
 }
 
 #if WITH_EDITOR
-FText FStateTreeIsInDangerCondition::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeIsInDangerCondition::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                    const IStateTreeBindingLookup& BindingLookup,
+                                                    EStateTreeNodeFormatting Formatting
+                                                    /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Is Character In Danger</b>");
 }
@@ -65,7 +73,8 @@ FText FStateTreeIsInDangerCondition::GetDescription(const FGuid& ID, FStateTreeD
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context,
+                                                          const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -89,7 +98,8 @@ EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionCon
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context,
+                                          const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -103,7 +113,10 @@ void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context, c
 }
 
 #if WITH_EDITOR
-FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                const IStateTreeBindingLookup& BindingLookup,
+                                                EStateTreeNodeFormatting Formatting
+                                                /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Do Combo Attack</b>");
 }
@@ -111,7 +124,8 @@ FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataV
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeChargedAttackTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeChargedAttackTask::EnterState(FStateTreeExecutionContext& Context,
+                                                            const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -134,7 +148,8 @@ EStateTreeRunStatus FStateTreeChargedAttackTask::EnterState(FStateTreeExecutionC
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeChargedAttackTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeChargedAttackTask::ExitState(FStateTreeExecutionContext& Context,
+                                            const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -148,7 +163,10 @@ void FStateTreeChargedAttackTask::ExitState(FStateTreeExecutionContext& Context,
 }
 
 #if WITH_EDITOR
-FText FStateTreeChargedAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeChargedAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                  const IStateTreeBindingLookup& BindingLookup,
+                                                  EStateTreeNodeFormatting Formatting
+                                                  /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Do Charged Attack</b>");
 }
@@ -156,7 +174,8 @@ FText FStateTreeChargedAttackTask::GetDescription(const FGuid& ID, FStateTreeDat
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeWaitForLandingTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeWaitForLandingTask::EnterState(FStateTreeExecutionContext& Context,
+                                                             const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -176,7 +195,8 @@ EStateTreeRunStatus FStateTreeWaitForLandingTask::EnterState(FStateTreeExecution
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeWaitForLandingTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeWaitForLandingTask::ExitState(FStateTreeExecutionContext& Context,
+                                             const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -190,7 +210,10 @@ void FStateTreeWaitForLandingTask::ExitState(FStateTreeExecutionContext& Context
 }
 
 #if WITH_EDITOR
-FText FStateTreeWaitForLandingTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeWaitForLandingTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                   const IStateTreeBindingLookup& BindingLookup,
+                                                   EStateTreeNodeFormatting Formatting
+                                                   /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Wait for Landing</b>");
 }
@@ -198,7 +221,8 @@ FText FStateTreeWaitForLandingTask::GetDescription(const FGuid& ID, FStateTreeDa
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionContext& Context,
+                                                        const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -213,7 +237,8 @@ EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionConte
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeFaceActorTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeFaceActorTask::ExitState(FStateTreeExecutionContext& Context,
+                                        const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned to another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -227,7 +252,10 @@ void FStateTreeFaceActorTask::ExitState(FStateTreeExecutionContext& Context, con
 }
 
 #if WITH_EDITOR
-FText FStateTreeFaceActorTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeFaceActorTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                              const IStateTreeBindingLookup& BindingLookup,
+                                              EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/)
+const
 {
 	return FText::FromString("<b>Face Towards Actor</b>");
 }
@@ -235,7 +263,8 @@ FText FStateTreeFaceActorTask::GetDescription(const FGuid& ID, FStateTreeDataVie
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeFaceLocationTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeFaceLocationTask::EnterState(FStateTreeExecutionContext& Context,
+                                                           const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -250,7 +279,8 @@ EStateTreeRunStatus FStateTreeFaceLocationTask::EnterState(FStateTreeExecutionCo
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeFaceLocationTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeFaceLocationTask::ExitState(FStateTreeExecutionContext& Context,
+                                           const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned to another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -264,7 +294,10 @@ void FStateTreeFaceLocationTask::ExitState(FStateTreeExecutionContext& Context, 
 }
 
 #if WITH_EDITOR
-FText FStateTreeFaceLocationTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeFaceLocationTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                 const IStateTreeBindingLookup& BindingLookup,
+                                                 EStateTreeNodeFormatting Formatting
+                                                 /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Face Towards Location</b>");
 }
@@ -272,7 +305,8 @@ FText FStateTreeFaceLocationTask::GetDescription(const FGuid& ID, FStateTreeData
 
 ////////////////////////////////////////////////////////////////////
 
-EStateTreeRunStatus FStateTreeSetCharacterSpeedTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeSetCharacterSpeedTask::EnterState(FStateTreeExecutionContext& Context,
+                                                                const FStateTreeTransitionResult& Transition) const
 {
 	// have we transitioned from another state?
 	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
@@ -288,7 +322,10 @@ EStateTreeRunStatus FStateTreeSetCharacterSpeedTask::EnterState(FStateTreeExecut
 }
 
 #if WITH_EDITOR
-FText FStateTreeSetCharacterSpeedTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeSetCharacterSpeedTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                      const IStateTreeBindingLookup& BindingLookup,
+                                                      EStateTreeNodeFormatting Formatting
+                                                      /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Set Character Speed</b>");
 }
@@ -312,8 +349,9 @@ EStateTreeRunStatus FStateTreeGetPlayerInfoTask::Tick(FStateTreeExecutionContext
 	}
 
 	// update the distance
-	InstanceData.DistanceToTarget = FVector::Distance(InstanceData.TargetPlayerLocation, InstanceData.Character->GetActorLocation());
-	
+	InstanceData.DistanceToTarget = FVector::Distance(InstanceData.TargetPlayerLocation,
+	                                                  InstanceData.Character->GetActorLocation());
+
 	if (ACombatEnemy* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
 	{
 		Enemy->DistanceToPlayer = InstanceData.DistanceToTarget;
@@ -323,8 +361,31 @@ EStateTreeRunStatus FStateTreeGetPlayerInfoTask::Tick(FStateTreeExecutionContext
 }
 
 #if WITH_EDITOR
-FText FStateTreeGetPlayerInfoTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeGetPlayerInfoTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                  const IStateTreeBindingLookup& BindingLookup,
+                                                  EStateTreeNodeFormatting Formatting
+                                                  /*= EStateTreeNodeFormatting::Text*/) const
 {
 	return FText::FromString("<b>Get Player Info</b>");
+}
+
+
+EStateTreeRunStatus FStateTreeWalkAroundTask::EnterState(FStateTreeExecutionContext& Context,
+                                                         const FStateTreeTransitionResult& Transition) const
+{
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+
+	if (InstanceData.TargetPlayerCharacter)
+	{
+		InstanceData.Controller->MoveToActor(InstanceData.TargetPlayerCharacter, 32.f);
+	}
+	return EStateTreeRunStatus::Running;
+}
+
+FText FStateTreeWalkAroundTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                               const IStateTreeBindingLookup& BindingLookup,
+                                               EStateTreeNodeFormatting Formatting) const
+{
+	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
 }
 #endif // WITH_EDITOR
