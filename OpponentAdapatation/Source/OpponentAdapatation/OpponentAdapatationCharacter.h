@@ -92,6 +92,8 @@ protected:
 	
 	void RunStart(const FInputActionValue& Value);
 	void RunEnd(const FInputActionValue& Value);
+	
+	bool IsBusy() const;
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */
@@ -132,4 +134,7 @@ public:
 	float DodgeCost = 15.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RollCost = 15.0f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+	bool bIsBusy = false;
 };

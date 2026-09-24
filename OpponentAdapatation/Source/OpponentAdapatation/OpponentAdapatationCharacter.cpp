@@ -81,9 +81,9 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::RunStart);
-		
+
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this,
-										   &AOpponentAdapatationCharacter::RunEnd);
+		                                   &AOpponentAdapatationCharacter::RunEnd);
 	}
 	else
 	{
@@ -121,7 +121,7 @@ void AOpponentAdapatationCharacter::Look(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
-	if (GetController() != nullptr)
+	if (GetController() != nullptr && !IsBusy())
 	{
 		if (Stamina - DodgeCost < 0) return;
 		Stamina -= DodgeCost;
@@ -134,7 +134,6 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 		Direction.Normalize();
 		SetActorRotation(Direction.Rotation());
 		PlayAnimMontage(DashMontage);
-		//LaunchCharacter(Direction * 1600, true, true);
 
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
@@ -215,9 +214,15 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 	GetCharacterMovement()->MaxWalkSpeed = 200.f;
 }
 
+bool AOpponentAdapatationCharacter::IsBusy() const
+{
+	const UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	return Anim && Anim->IsAnyMontagePlaying();
+}
+
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 {
-	if (GetController() != nullptr)
+	if (GetController() != nullptr && !IsBusy())
 	{
 		// find out which way is forward
 		const FRotator Rotation = GetController()->GetControlRotation();
