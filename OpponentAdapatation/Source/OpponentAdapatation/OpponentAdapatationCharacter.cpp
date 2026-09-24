@@ -175,8 +175,8 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 		}
 		Direction.Normalize();
 
-		//PlayAnimMontage();
-		LaunchCharacter(Direction * 1600, true, true);
+		PlayAnimMontage(DodgeMontage);
+		//LaunchCharacter(Direction * 1600, true, true);
 
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))

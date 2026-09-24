@@ -63,6 +63,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DashMontage;
+	
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> DodgeMontage;
 
 public:
 	/** Constructor */
