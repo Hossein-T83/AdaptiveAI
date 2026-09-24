@@ -93,7 +93,7 @@ protected:
 	void RunStart(const FInputActionValue& Value);
 	void RunEnd(const FInputActionValue& Value);
 	
-	bool IsBusy() const;
+	bool IsBusy();
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */
@@ -135,6 +135,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RollCost = 15.0f;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
 };

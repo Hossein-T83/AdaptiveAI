@@ -214,10 +214,11 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 	GetCharacterMovement()->MaxWalkSpeed = 200.f;
 }
 
-bool AOpponentAdapatationCharacter::IsBusy() const
+bool AOpponentAdapatationCharacter::IsBusy() 
 {
 	const UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	return Anim && Anim->IsAnyMontagePlaying();
+	bIsBusy = Anim && Anim->IsAnyMontagePlaying();
+	return bIsBusy;
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
