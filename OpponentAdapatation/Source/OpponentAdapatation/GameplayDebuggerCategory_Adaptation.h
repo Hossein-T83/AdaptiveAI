@@ -22,6 +22,7 @@ class FGameplayDebuggerCategory_Adaptation : public FGameplayDebuggerCategory
 		float Accuracy;
 		float Confidence;
 		FString Context;
+		TArray<FName> States;
 		
 		void Serialize(FArchive& Ar);
 	};
