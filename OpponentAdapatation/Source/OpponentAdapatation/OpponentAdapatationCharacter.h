@@ -65,8 +65,13 @@ protected:
 	TObjectPtr<UAnimMontage> DashMontage;
 	
 	UPROPERTY(EditAnywhere, Category="Animation")
-	TObjectPtr<UAnimMontage> DodgeMontage;
-
+	TObjectPtr<UAnimMontage> DodgeBackMontage;
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> DodgeForwardMontage;
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> DodgeRightMontage;
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> DodgeLeftMontage;
 public:
 	/** Constructor */
 	AOpponentAdapatationCharacter();
@@ -140,4 +145,8 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+	bool bIsRunning = false;
+	
 };

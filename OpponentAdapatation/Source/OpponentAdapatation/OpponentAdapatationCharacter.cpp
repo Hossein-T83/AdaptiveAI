@@ -132,8 +132,6 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 			Direction = -GetActorForwardVector();
 		}
 		Direction.Normalize();
-		SetActorRotation(Direction.Rotation());
-		PlayAnimMontage(DashMontage);
 
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
@@ -141,10 +139,12 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 			if (Local.Y > 0)
 			{
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeRight);
+				PlayAnimMontage(DodgeRightMontage);
 			}
 			else
 			{
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
+				PlayAnimMontage(DodgeLeftMontage);
 			}
 		}
 		else
@@ -152,10 +152,12 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 			if (Local.X > 0)
 			{
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeForward);
+				PlayAnimMontage(DodgeForwardMontage);
 			}
 			else
 			{
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeBack);
+				PlayAnimMontage(DodgeBackMontage);
 			}
 		}
 	}
@@ -174,9 +176,9 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 			Direction = -GetActorForwardVector();
 		}
 		Direction.Normalize();
-
-		PlayAnimMontage(DodgeMontage);
-		//LaunchCharacter(Direction * 1600, true, true);
+		
+		SetActorRotation(Direction.Rotation());
+		PlayAnimMontage(DashMontage);
 
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
@@ -207,11 +209,13 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 void AOpponentAdapatationCharacter::RunStart(const FInputActionValue& Value)
 {
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	bIsRunning = true;
 }
 
 void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 {
 	GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	bIsRunning = false;
 }
 
 bool AOpponentAdapatationCharacter::IsBusy() 
