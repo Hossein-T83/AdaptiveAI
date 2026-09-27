@@ -7,16 +7,23 @@
 #include "Components/TextBlock.h"
 
 
-void UDebugWidgetAI::Refresh(const FString& State, const FString& Prediction, float DeltaTime)
+void UDebugWidgetAI::Refresh(const FString& State, const FString& Prediction, const FString& Attack, const float DeltaTime)
 {
-	if (StateText) StateText->SetText(FText::FromString(Prediction));
 	if (PredictionText)
+		PredictionText->SetText(FText::FromString(
+			FString::Printf(TEXT("Predicted action: %s"), *Prediction)));
+	if (TimerText)
 	{
 		if (TimerRemaining > 0)
 		{
 			TimerRemaining -= DeltaTime;
 		}
-		PredictionText->SetText(FText::AsNumber(TimerRemaining));
+		TimerText->SetText(FText::AsNumber(TimerRemaining));
+	}
+	if (SelectedAttack)
+	{
+		SelectedAttack->SetText(FText::FromString(
+			FString::Printf(TEXT("Selected attack: %s"), *Attack)));
 	}
 }
 

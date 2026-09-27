@@ -17,13 +17,16 @@ class OPPONENTADAPATATION_API UDebugWidgetAI : public UUserWidget
 
 public:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UTextBlock> StateText;
+	TObjectPtr<class UTextBlock> TimerText;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> PredictionText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> SelectedAttack;
 
 	UFUNCTION(BlueprintCallable, Category = "Debug")
-	void Refresh(const FString& State, const FString& Prediction, float DeltaTime);
+	void Refresh(const FString& State, const FString& Prediction, const FString& Attack, const float DeltaTime);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	TObjectPtr<AActor> EnemyPtr;
