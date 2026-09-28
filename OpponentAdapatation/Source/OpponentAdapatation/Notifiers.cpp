@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "InputNotifier.h"
+#include "Notifiers.h"
 
 #include "OpponentAdapatationCharacter.h"
 
-void UInputNotifier::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UNotifiers::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
                             const FAnimNotifyEventReference& EventRef)
 {
 	Super::Notify(MeshComp, Animation, EventRef);
@@ -14,3 +14,4 @@ void UInputNotifier::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase*
 		Character->bIsBusy = false;
 	}
 }
+

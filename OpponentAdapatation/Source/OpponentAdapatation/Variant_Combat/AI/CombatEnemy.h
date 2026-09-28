@@ -37,24 +37,26 @@ class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDa
 	UWidgetComponent* LifeBar;
 
 public:
-	
 	/** Constructor */
 	ACombatEnemy();
 
-	
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	                    bool bFromSweep, const FHitResult& SweepResult);
+
 	/** Current amount of HP the character has */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
 	float CurrentHP = 0.0f;
-	
+
 	/** Max amount of HP the character will have on respawn */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
 	float MaxHP = 3.0f;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Distance")
 	float DistanceToPlayer = 0.f;
 
 protected:
-
 	/** Name of the pelvis bone, for damage ragdoll physics */
 	UPROPERTY(EditAnywhere, Category="Damage")
 	FName PelvisBoneName;
@@ -154,7 +156,6 @@ public:
 	FOnEnemyDied OnEnemyDied;
 
 public:
-
 	/** Performs an AI-initiated combo attack. Number of hits will be decided by this character */
 	void DoAIComboAttack();
 
@@ -171,7 +172,6 @@ public:
 	float GetLastDangerTime() const;
 
 public:
-
 	// ~begin ICombatAttacker interface
 
 	/** Performs an attack's collision check */
@@ -190,7 +190,8 @@ public:
 	// ~begin ICombatDamageable interface
 
 	/** Handles damage and knockback events */
-	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
+	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation,
+	                         const FVector& DamageImpulse) override;
 
 	/** Handles death events */
 	virtual void HandleDeath() override;
@@ -204,26 +205,23 @@ public:
 	// ~end ICombatDamageable interface
 
 protected:
-
 	/** Removes this character from the level after it dies */
 	void RemoveFromLevel();
 
 public:
-
 	/** Overrides the default TakeDamage functionality */
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
+	                         AActor* DamageCauser) override;
 
 	/** Overrides landing to reset damage ragdoll physics */
 	virtual void Landed(const FHitResult& Hit) override;
 
 protected:
-
 	/** Blueprint handler to play damage received effects */
 	UFUNCTION(BlueprintImplementableEvent, Category="Combat")
 	void ReceivedDamage(float Damage, const FVector& ImpactPoint, const FVector& DamageDirection);
 
 protected:
-
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 

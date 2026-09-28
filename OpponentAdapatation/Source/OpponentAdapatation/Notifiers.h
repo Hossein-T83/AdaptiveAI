@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "InputNotifier.generated.h"
+#include "Notifiers.generated.h"
 
 /**
  * 
  */
 UCLASS(meta = (DisplayName = "Input Open"))
-class OPPONENTADAPATATION_API UInputNotifier : public UAnimNotify
+class OPPONENTADAPATATION_API UInputNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 		const FAnimNotifyEventReference& EventRef) override;
 	
 };
+
