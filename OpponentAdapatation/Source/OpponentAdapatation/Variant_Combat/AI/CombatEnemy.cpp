@@ -39,7 +39,7 @@ ACombatEnemy::ACombatEnemy()
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 
 	// reset HP to maximum
-	CurrentHP = MaxHP + 1;
+	CurrentHP = MaxHP;
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);
 }
