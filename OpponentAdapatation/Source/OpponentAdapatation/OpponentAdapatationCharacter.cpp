@@ -218,16 +218,10 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 	bIsRunning = false;
 }
 
-bool AOpponentAdapatationCharacter::IsBusy() 
-{
-	const UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	bIsBusy = Anim && Anim->IsAnyMontagePlaying();
-	return bIsBusy;
-}
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 {
-	if (GetController() != nullptr && !IsBusy())
+	if (GetController() != nullptr && !bIsBusy)
 	{
 		// find out which way is forward
 		const FRotator Rotation = GetController()->GetControlRotation();

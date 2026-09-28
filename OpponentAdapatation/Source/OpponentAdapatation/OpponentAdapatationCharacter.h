@@ -100,8 +100,6 @@ protected:
 	
 	void RunStart(const FInputActionValue& Value);
 	void RunEnd(const FInputActionValue& Value);
-	
-	bool IsBusy();
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */
