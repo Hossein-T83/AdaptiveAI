@@ -121,7 +121,7 @@ void AOpponentAdapatationCharacter::Look(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
-	if (GetController() != nullptr && !IsBusy())
+	if (GetController() != nullptr && !bIsBusy)
 	{
 		if (Stamina - DodgeCost < 0) return;
 		Stamina -= DodgeCost;
