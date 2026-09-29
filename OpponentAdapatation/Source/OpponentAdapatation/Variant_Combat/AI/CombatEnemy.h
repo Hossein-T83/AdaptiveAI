@@ -33,8 +33,8 @@ class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDa
 	GENERATED_BODY()
 
 	/** Life bar widget component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* LifeBar;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* LifeBar;*/
 
 public:
 	/** Constructor */
@@ -46,11 +46,11 @@ public:
 	                    bool bFromSweep, const FHitResult& SweepResult);
 
 	/** Current amount of HP the character has */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
 	float CurrentHP = 0.0f;
 
 	/** Max amount of HP the character will have on respawn */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Damage", meta = (ClampMin = 0, ClampMax = 100))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
 	float MaxHP = 3.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Distance")
@@ -62,8 +62,8 @@ protected:
 	FName PelvisBoneName;
 
 	/** Pointer to the life bar widget */
-	UPROPERTY(EditAnywhere, Category="Damage")
-	UCombatLifeBar* LifeBarWidget;
+	/*UPROPERTY(EditAnywhere, Category="Damage")
+	UCombatLifeBar* LifeBarWidget;*/
 
 	/** If true, the character is currently playing an attack animation */
 	bool bIsAttacking = false;
