@@ -140,9 +140,8 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
 	if (GetController() != nullptr && !bIsBusy)
 	{
-		if (Stamina - DodgeCost < 0) return;
+		if (StaminaCheck(ECostActions::Dodge)) return;
 		bIsBusy = true;
-		Stamina -= DodgeCost;
 
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
@@ -185,9 +184,8 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 {
 	if (GetController() != nullptr && !bIsBusy)
 	{
-		if (Stamina - RollCost < 0) return;
+		if (!StaminaCheck(ECostActions::Roll)) return;
 		bIsBusy = true;
-		Stamina -= RollCost;
 
 		FVector Direction = GetLastMovementInputVector();
 		if (Direction.IsNearlyZero())
@@ -222,6 +220,12 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollBack);
 			}
 		}
+		UE_LOG(LogTemp, Warning, TEXT("input=%s  dir=%s  local=%s  actorYaw=%.1f  ctrlYaw=%.1f"),
+		       *GetLastMovementInputVector().ToString(),
+		       *Direction.ToString(),
+		       *Local.ToString(),
+		       GetActorRotation().Yaw,
+		       GetControlRotation().Yaw);
 	}
 }
 
@@ -287,4 +291,43 @@ void AOpponentAdapatationCharacter::DoJumpEnd()
 {
 	// signal the character to stop jumping
 	StopJumping();
+}
+
+bool AOpponentAdapatationCharacter::StaminaCheck(const ECostActions ActionType)
+{
+	switch (ActionType)
+	{
+	case ECostActions::Attack:
+		{
+			float NewStamina = Stamina - AttackCost;
+			if (NewStamina > 0)
+			{
+				Stamina = NewStamina;
+				return true;
+			}
+			return false;
+		}
+	case ECostActions::Roll:
+		{
+			float NewStamina = Stamina - RollCost;
+			if (NewStamina > 0)
+			{
+				Stamina = NewStamina;
+				return true;
+			}
+			return false;
+		}
+	case ECostActions::Dodge:
+		{
+			float NewStamina = Stamina - DodgeCost;
+			if (NewStamina > 0)
+			{
+				Stamina = NewStamina;
+				return true;
+			}
+			return false;
+		}
+	default:
+		return false;
+	}
 }

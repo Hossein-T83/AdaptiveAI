@@ -18,6 +18,15 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerActionRecorded, EPlayerAction, Action);
 
+UENUM(BlueprintType)
+enum class ECostActions : uint8
+{
+	Attack, 
+	Dodge,
+	Roll,
+	Run
+};
+
 /**
  *  A simple player-controllable third person character
  *  Implements a controllable orbiting camera
@@ -153,5 +162,8 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	bool bIsRunning = false;
+	
+	UFUNCTION(BlueprintCallable, Category = "Costs")
+	bool StaminaCheck(const ECostActions ActionType);
 	
 };
