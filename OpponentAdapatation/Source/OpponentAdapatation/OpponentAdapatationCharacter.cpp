@@ -79,7 +79,7 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::Roll);
 
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::RunStart);
 
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this,
@@ -97,8 +97,25 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Stamina + DeltaTime < MaxStamina)
-		Stamina += DeltaTime * 2.f;
+	if (bIsRunning)
+	{
+		if (const float NewStamina = Stamina - DeltaTime * RunCost; NewStamina > 0)
+		{
+			Stamina = NewStamina;
+		}
+		else
+		{
+			RunStop();
+			Stamina = 0;
+		}
+	}
+	else
+	{
+		if (const float NewStamina = Stamina + DeltaTime * RegainStaminaRate; NewStamina < MaxStamina)
+		{
+			Stamina = NewStamina;
+		}
+	}
 }
 
 void AOpponentAdapatationCharacter::Move(const FInputActionValue& Value)
@@ -124,6 +141,7 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 	if (GetController() != nullptr && !bIsBusy)
 	{
 		if (Stamina - DodgeCost < 0) return;
+		bIsBusy = true;
 		Stamina -= DodgeCost;
 
 		FVector Direction = GetLastMovementInputVector();
@@ -165,9 +183,10 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 {
-	if (GetController() != nullptr)
+	if (GetController() != nullptr && !bIsBusy)
 	{
 		if (Stamina - RollCost < 0) return;
+		bIsBusy = true;
 		Stamina -= RollCost;
 
 		FVector Direction = GetLastMovementInputVector();
@@ -176,7 +195,7 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 			Direction = -GetActorForwardVector();
 		}
 		Direction.Normalize();
-		
+
 		SetActorRotation(Direction.Rotation());
 		PlayAnimMontage(DashMontage);
 
@@ -212,12 +231,16 @@ void AOpponentAdapatationCharacter::RunStart(const FInputActionValue& Value)
 	bIsRunning = true;
 }
 
-void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
+void AOpponentAdapatationCharacter::RunStop()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 200.f;
 	bIsRunning = false;
 }
 
+void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
+{
+	RunStop();
+}
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 {

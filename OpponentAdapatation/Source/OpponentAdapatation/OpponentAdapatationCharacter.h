@@ -99,6 +99,7 @@ protected:
 	void Roll(const FInputActionValue& Value);
 	
 	void RunStart(const FInputActionValue& Value);
+	void RunStop();
 	void RunEnd(const FInputActionValue& Value);
 
 public:
@@ -140,6 +141,12 @@ public:
 	float DodgeCost = 15.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RollCost = 15.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float AttackCost = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float RunCost = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float RegainStaminaRate = 3.f;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
