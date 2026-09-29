@@ -16,16 +16,14 @@ UAIDirector::UAIDirector()
 	// ...
 }
 
-int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
+const FBossAttack UAIDirector::ChooseNextAttack(const FFightContext& Context)
 {
-	int32 HighestScoreId = 0;
-	float HighestScore = -FLT_MAX;
-	
-	
 	if (Model)
 	{
 		if (ValidAttacks.Num() > 0)
 		{
+			int32 HighestScoreId = 0;
+			float HighestScore = -FLT_MAX;
 			for (const auto& Attack : ValidAttacks)
 			{
 				const auto& Prediction = Model->Predict(FPlayerActionContext(Context, Attack.Id));
@@ -37,7 +35,7 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 						FinalScore += 10 * Prediction.Confidence;
 					}
 				}
-				for (const auto& Tag  : Context.Tags)
+				for (const auto& Tag : Context.Tags)
 				{
 					if (const float* Found = Attack.Weights.Find(Tag))
 					{
@@ -51,27 +49,39 @@ int32 UAIDirector::ChooseNextAttack(const FFightContext& Context)
 					Model->UpdateCurrentPrediction(Prediction);
 				}
 			}
-			Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId}, 1.5f /*Delay can be calculated or given by user*/);
-		
+			Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId},
+			                          1.5f /*Delay can be calculated or given by user*/);
+
 			const auto* Found = ValidAttacks.FindByPredicate(
-		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
+				[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
 			if (Found)
 			{
 				const FBossAttack ChosenAttack = *Found;
 				AttacksOnCooldown.Add(ChosenAttack);
 				ValidAttacks.Remove(ChosenAttack);
+				return ChosenAttack;
 			}
 		}
 	}
-	
-	
-	return HighestScoreId;
+	return FBossAttack{};
 }
 
 float UAIDirector::CalculateFinalDelay(const FFightContext& Context) const
 {
 	const float Multiplier = Rule->Score_Implementation(Context);
 	return BaseDelay * Multiplier;
+}
+
+int32 UAIDirector::IdToIndex(int32 Id) const
+{
+	for (int i = 0; i < ValidAttacks.Num(); ++i)
+	{
+		if (ValidAttacks[i].Id == Id)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 
@@ -87,7 +97,7 @@ void UAIDirector::BeginPlay()
 void UAIDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
 	for (int32 i = AttacksOnCooldown.Num() - 1; i >= 0; --i)
 	{
 		FBossAttack& Attack = AttacksOnCooldown[i];
@@ -103,4 +113,3 @@ void UAIDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 
 	// ...
 }
-

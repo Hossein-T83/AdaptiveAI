@@ -22,6 +22,7 @@ enum class EPlayerAction : uint8
 	RollBack,
 	RollForward,
 	Jump,
+	Attack,
 	Count UMETA(Hidden)
 };
 

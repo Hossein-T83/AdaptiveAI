@@ -22,9 +22,11 @@ public:
 	UAIDirector();
 	
 	UFUNCTION(BlueprintCallable, Category = "Director")
-	int32 ChooseNextAttack(const FFightContext& Context);
+	const FBossAttack ChooseNextAttack(const FFightContext& Context);
 	UFUNCTION(BlueprintCallable, Category = "Director")
 	float CalculateFinalDelay(const FFightContext& Context) const;
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	int32 IdToIndex(int32 Id) const;
 
 protected:
 	// Called when the game starts

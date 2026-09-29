@@ -48,9 +48,10 @@ void ACombatEnemy::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                   const FHitResult& SweepResult)
 {
-	
+	if (!OtherActor || OtherActor == this) return;
 	CurrentHP -= 1;
 	LifeBarWidget->SetLifePercentage(CurrentHP/MaxHP);
+	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ACombatEnemy::DoAIComboAttack()
