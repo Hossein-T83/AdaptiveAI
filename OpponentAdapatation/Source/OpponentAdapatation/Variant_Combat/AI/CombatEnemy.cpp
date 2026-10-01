@@ -349,6 +349,7 @@ void ACombatEnemy::BeginPlay()
 
 	// fill the life bar
 	LifeBarWidget->SetLifePercentage(1.0f);*/
+	StaticMeshComp = GetComponentByClass<UStaticMeshComponent>();
 }
 
 void ACombatEnemy::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -357,4 +358,49 @@ void ACombatEnemy::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 	// clear the death timer
 	GetWorld()->GetTimerManager().ClearTimer(DeathTimer);
+}
+
+void ACombatEnemy::HammerAttack()
+{
+	const FRotator Current = FMath::Lerp(FRotator::ZeroRotator, FRotator(-90.f, 0.f, 0.f), ToppleAlpha);
+	StaticMeshComp->SetRelativeRotation(Current);
+}
+
+void ACombatEnemy::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (!StaticMeshComp) return;
+	if (bIsAttacking)
+	{
+		switch (CurrentAttackType)
+		{
+		case EAttackType::HammerAttack:
+			{
+				ToppleAlpha = FMath::Min(ToppleAlpha + DeltaTime / ToppleDuration, 1.f);
+				HammerAttack();
+				if (ToppleAlpha >= 1.f)
+				{
+					bIsAttacking = false;
+					bIsToppled = true;
+				}
+			}
+		case EAttackType::RollAttack:
+			{
+			}
+		case EAttackType::CircleAttack:
+			{
+			}
+		}
+	}
+
+	if (bIsToppled)
+	{
+		ToppleAlpha = FMath::Max(ToppleAlpha - DeltaTime / ToppleDuration, 0.f);
+		const FRotator Current = FMath::Lerp(FRotator::ZeroRotator, FRotator(-90.f, 0.f, 0.f), ToppleAlpha);
+		StaticMeshComp->SetRelativeRotation(Current);
+		if (ToppleAlpha <= 0.f)
+		{
+			bIsToppled = false;
+		}
+	}
 }

@@ -374,7 +374,31 @@ EStateTreeRunStatus FStateTreeWalkAroundTask::EnterState(FStateTreeExecutionCont
                                                          const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
+	{
+		if (Enemy->bIsToppled)
+		{
+			Enemy->ToppleDuration = Enemy->CurrentDelay * 0.5f;
+			return EStateTreeRunStatus::Running;
+		}
+	}
+	if (InstanceData.TargetPlayerCharacter)
+	{
+		InstanceData.Controller->MoveToActor(InstanceData.TargetPlayerCharacter, 32.f);
+	}
+	return EStateTreeRunStatus::Running;
+}
 
+EStateTreeRunStatus FStateTreeWalkAroundTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+{
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
+	{
+		if (Enemy->bIsToppled)
+		{
+			return EStateTreeRunStatus::Running;
+		}
+	}
 	if (InstanceData.TargetPlayerCharacter)
 	{
 		InstanceData.Controller->MoveToActor(InstanceData.TargetPlayerCharacter, 32.f);

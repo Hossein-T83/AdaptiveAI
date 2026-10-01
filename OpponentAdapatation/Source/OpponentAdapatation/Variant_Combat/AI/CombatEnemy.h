@@ -27,6 +27,14 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyDied);
  *  An AI-controlled character with combat capabilities.
  *  Its bundled AI Controller runs logic through StateTree
  */
+
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	HammerAttack,
+	RollAttack,
+	CircleAttack
+};
 UCLASS(abstract)
 class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable
 {
@@ -66,6 +74,7 @@ protected:
 	UCombatLifeBar* LifeBarWidget;*/
 
 	/** If true, the character is currently playing an attack animation */
+	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	bool bIsAttacking = false;
 
 	/** Distance ahead of the character that melee attack sphere collision traces will extend */
@@ -227,4 +236,18 @@ protected:
 
 	/** EndPlay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+private:
+	void HammerAttack();
+	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
+	float ToppleAlpha = 0.f;
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float ToppleDuration = 1.f;
+	UPROPERTY(BlueprintReadWrite, Category="Combat")
+	EAttackType CurrentAttackType;
+	bool bIsToppled = false;
+	UPROPERTY(BlueprintReadWrite, Category="Combat")
+	float CurrentDelay = 0.f;
+	virtual void Tick(float DeltaTime) override;
 };
