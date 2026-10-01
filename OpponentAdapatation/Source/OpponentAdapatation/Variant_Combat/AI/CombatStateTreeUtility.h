@@ -400,3 +400,25 @@ struct FStateTreeWalkAroundTask : public FStateTreeTaskCommonBase
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif // WITH_EDITOR
 };
+USTRUCT()
+struct FIsStandingConditionInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<AActor> Character;
+};
+
+USTRUCT(meta = (DisplayName = "IsStanding"), Category = "Combat")
+struct FIsStandingCondition : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+	using FInstanceDataType = FIsStandingConditionInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override
+	{
+		return FInstanceDataType::StaticStruct();
+	}
+	
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
+};

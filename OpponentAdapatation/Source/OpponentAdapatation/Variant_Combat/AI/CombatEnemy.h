@@ -35,6 +35,15 @@ enum class EAttackType : uint8
 	RollAttack,
 	CircleAttack
 };
+
+enum EEnemyState
+{
+	Toppled, 
+	Standing,
+	Rising, 
+	Rolling,
+	Waiting
+};
 UCLASS(abstract)
 class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable
 {
@@ -238,16 +247,22 @@ protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	void HammerAttack();
+	void HammerAttack() const;
+	void RollAttack() const;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 	float ToppleAlpha = 0.f;
+	FRotator RiseAxis = FRotator(0.0f, 0.0f, 0.0f);
+	float DelayTimer = 0.f;
+	EEnemyState CurrentState = EEnemyState::Standing;
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	float ToppleDuration = 1.f;
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	EAttackType CurrentAttackType;
-	bool bIsToppled = false;
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	float CurrentDelay = 0.f;
 	virtual void Tick(float DeltaTime) override;
+	
+	EEnemyState GetCurrentState() const;
 };

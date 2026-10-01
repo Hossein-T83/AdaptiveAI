@@ -229,6 +229,8 @@ EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionConte
 	{
 		// get the instance data
 		FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+		
+		
 
 		// set the AI Controller's focus
 		InstanceData.Controller->SetFocus(InstanceData.ActorToFaceTowards);
@@ -376,9 +378,8 @@ EStateTreeRunStatus FStateTreeWalkAroundTask::EnterState(FStateTreeExecutionCont
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
 	{
-		if (Enemy->bIsToppled)
+		if (Enemy->GetCurrentState()!= EEnemyState::Standing)
 		{
-			Enemy->ToppleDuration = Enemy->CurrentDelay * 0.5f;
 			return EStateTreeRunStatus::Running;
 		}
 	}
@@ -394,7 +395,7 @@ EStateTreeRunStatus FStateTreeWalkAroundTask::Tick(FStateTreeExecutionContext& C
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
 	{
-		if (Enemy->bIsToppled)
+		if (Enemy->GetCurrentState()!= EEnemyState::Standing)
 		{
 			return EStateTreeRunStatus::Running;
 		}
@@ -411,5 +412,16 @@ FText FStateTreeWalkAroundTask::GetDescription(const FGuid& ID, FStateTreeDataVi
                                                EStateTreeNodeFormatting Formatting) const
 {
 	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
+}
+
+bool FIsStandingCondition::TestCondition(FStateTreeExecutionContext& Context) const
+{
+	const FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+
+	if (const ACombatEnemy* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
+	{
+		return Enemy->GetCurrentState() == EEnemyState::Standing;
+	}
+	return false;
 }
 #endif // WITH_EDITOR
