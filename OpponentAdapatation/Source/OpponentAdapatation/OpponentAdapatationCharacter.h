@@ -21,7 +21,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerActionRecorded, EPlayerActi
 UENUM(BlueprintType)
 enum class ECostActions : uint8
 {
-	Attack, 
+	Attack,
 	Dodge,
 	Roll,
 	Run
@@ -66,13 +66,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* RollAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* RunAction;
-	
+
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DashMontage;
-	
+
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DodgeBackMontage;
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -81,9 +81,15 @@ protected:
 	TObjectPtr<UAnimMontage> DodgeRightMontage;
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DodgeLeftMontage;
+
 public:
 	/** Constructor */
 	AOpponentAdapatationCharacter();
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+						bool bFromSweep, const FHitResult& SweepResult);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
 	EPlayerAction CurrentPlayerAction;
@@ -106,7 +112,7 @@ protected:
 	void Dodge(const FInputActionValue& Value);
 
 	void Roll(const FInputActionValue& Value);
-	
+
 	void RunStart(const FInputActionValue& Value);
 	void RunStop();
 	void RunEnd(const FInputActionValue& Value);
@@ -140,12 +146,12 @@ public:
 	float MaxHealth = 100.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	float Health = MaxHealth;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	float MaxStamina = 75.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	float Stamina = MaxStamina;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float DodgeCost = 15.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
@@ -156,14 +162,13 @@ public:
 	float RunCost = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RegainStaminaRate = 3.f;
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	bool bIsRunning = false;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Costs")
 	bool StaminaCheck(const ECostActions ActionType);
-	
 };

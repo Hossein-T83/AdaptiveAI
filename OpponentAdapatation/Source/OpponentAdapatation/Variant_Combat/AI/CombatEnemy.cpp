@@ -41,7 +41,8 @@ ACombatEnemy::ACombatEnemy()
 	// reset HP to maximum
 	CurrentHP = MaxHP;
 
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);
+	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
 	StaticMeshComp->SetupAttachment(GetMesh());
 	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
@@ -376,7 +377,7 @@ void ACombatEnemy::RollAttack() const
 void ACombatEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!StaticMeshComp) return;
+	/*if (!StaticMeshComp) return;
 
 	if (bIsAttacking)
 	{
@@ -452,7 +453,7 @@ void ACombatEnemy::Tick(float DeltaTime)
 				ToppleDuration = CurrentDelay * 0.5f;
 			}
 		}
-	}
+	}*/
 }
 
 EEnemyState ACombatEnemy::GetCurrentState() const

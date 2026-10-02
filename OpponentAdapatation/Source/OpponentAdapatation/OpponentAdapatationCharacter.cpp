@@ -49,6 +49,16 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOpponentAdapatationCharacter::OnOverlapBegin);
+}
+
+void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor || OtherActor == this) return;
+	Health -= 10;
+	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

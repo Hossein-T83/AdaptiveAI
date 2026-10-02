@@ -264,5 +264,9 @@ public:
 	float CurrentDelay = 0.f;
 	virtual void Tick(float DeltaTime) override;
 	
+	bool IsAttacking() const
+	{
+		return bIsAttacking;
+	}
 	EEnemyState GetCurrentState() const;
 };

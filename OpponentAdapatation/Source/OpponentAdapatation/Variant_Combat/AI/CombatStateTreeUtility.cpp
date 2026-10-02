@@ -378,7 +378,7 @@ EStateTreeRunStatus FStateTreeWalkAroundTask::EnterState(FStateTreeExecutionCont
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
 	{
-		if (Enemy->GetCurrentState()!= EEnemyState::Standing)
+		if (Enemy->IsAttacking())
 		{
 			return EStateTreeRunStatus::Running;
 		}
@@ -395,7 +395,7 @@ EStateTreeRunStatus FStateTreeWalkAroundTask::Tick(FStateTreeExecutionContext& C
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (auto* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
 	{
-		if (Enemy->GetCurrentState()!= EEnemyState::Standing)
+		if (Enemy->IsAttacking())
 		{
 			return EStateTreeRunStatus::Running;
 		}
