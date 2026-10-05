@@ -238,4 +238,8 @@ private:
 	float TotalCorrectPredictions = 0.f;
 	float TotalPredictions = 0.f;
 	float Accuracy = 0.f;
+	
+public: 
+	void HardReset();
+	void SoftReset();
 };

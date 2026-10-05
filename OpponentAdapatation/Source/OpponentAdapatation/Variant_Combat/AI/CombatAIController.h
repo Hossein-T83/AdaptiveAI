@@ -24,4 +24,5 @@ public:
 
 	/** Constructor */
 	ACombatAIController();
+	inline UStateTreeAIComponent* GetStateTree() const { return StateTreeAI; }
 };

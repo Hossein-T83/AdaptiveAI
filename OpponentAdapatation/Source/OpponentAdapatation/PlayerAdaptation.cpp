@@ -156,6 +156,22 @@ void UPlayerAdaptation::CloseTrackingWindow()
 	LogAccuracy();
 }
 
+void UPlayerAdaptation::HardReset()
+{
+	SoftReset();
+	TableOfContext.Reset();
+}
+
+void UPlayerAdaptation::SoftReset()
+{
+	CurrentConfidence = 0.f;
+	CurrentPrediction = FPredictionResult(EPlayerAction::None, 0.f);
+	CurrentContext = FPlayerActionContext();
+	TotalCorrectPredictions = 0.f;
+	TotalPredictions = 0.f;
+	Accuracy = 0.f;
+}
+
 FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
 {
 	int32 BestIndex = 0;
