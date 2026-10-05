@@ -10,6 +10,7 @@
 #include "Engine/TimerHandle.h"
 #include "CombatEnemy.generated.h"
 
+class AOpponentAdapatationCharacter;
 class UWidgetComponent;
 class UCombatLifeBar;
 class UAnimMontage;
@@ -38,12 +39,13 @@ enum class EAttackType : uint8
 
 enum EEnemyState
 {
-	Toppled, 
+	Toppled,
 	Standing,
-	Rising, 
+	Rising,
 	Rolling,
 	Waiting
 };
+
 UCLASS(abstract)
 class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable
 {
@@ -255,6 +257,11 @@ private:
 	FRotator RiseAxis = FRotator(0.0f, 0.0f, 0.0f);
 	float DelayTimer = 0.f;
 	EEnemyState CurrentState = EEnemyState::Standing;
+	bool bIsDashing = false;
+	FVector DashDirection = FVector(0.0f, 0.0f, 0.0f);
+	float DashDistanceRemaining = 0.f;
+	float DashSpeed = 0.f;
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	float ToppleDuration = 1.f;
@@ -263,10 +270,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	float CurrentDelay = 0.f;
 	virtual void Tick(float DeltaTime) override;
-	
+
 	bool IsAttacking() const
 	{
 		return bIsAttacking;
 	}
+
 	EEnemyState GetCurrentState() const;
+
+	UFUNCTION(BlueprintCallable, Category="Combat")
+	void Dash(float Speed, float Distance);
+	
+	UPROPERTY(BlueprintReadWrite, Category="Combat")
+	TObjectPtr<AOpponentAdapatationCharacter> PlayerRef;
+
 };

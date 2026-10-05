@@ -78,7 +78,7 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Look);
 
-		// Looking
+		// Lookingw
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Look);
 

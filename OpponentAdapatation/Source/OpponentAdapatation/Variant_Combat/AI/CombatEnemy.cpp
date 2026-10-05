@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Engine/DamageEvents.h"
 #include "CombatLifeBar.h"
+#include "OpponentAdapatationCharacter.h"
 #include "TimerManager.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
@@ -454,9 +455,22 @@ void ACombatEnemy::Tick(float DeltaTime)
 			}
 		}
 	}*/
+	if (DashDistanceRemaining > 0.f)
+	{
+		const float Step = FMath::Min(DashSpeed * DeltaTime, DashDistanceRemaining);
+		AddActorWorldOffset(DashDirection * Step, true);   // sweep = stops on collision
+		DashDistanceRemaining -= Step;
+	}
 }
 
 EEnemyState ACombatEnemy::GetCurrentState() const
 {
 	return CurrentState;
+}
+
+void ACombatEnemy::Dash(float Speed, float Distance)
+{
+	DashDirection = (PlayerRef->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+	DashDistanceRemaining = Distance; 
+	DashSpeed = Speed;
 }
