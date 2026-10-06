@@ -41,11 +41,20 @@ ACombatEnemy::ACombatEnemy()
 
 	// reset HP to maximum
 	CurrentHP = MaxHP;
-
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);
+	
 	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
 	StaticMeshComp->SetupAttachment(GetMesh());
 	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	WeaponHitBox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponHitbox"));
+	WeaponHitBox->SetupAttachment(GetMesh(),TEXT("weapon_r"));
+	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
+	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HitboxComp->SetGenerateOverlapEvents(true);   
+	
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);
 }
 
 void ACombatEnemy::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -53,8 +62,7 @@ void ACombatEnemy::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
                                   const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
-	CurrentHP -= 1;
-	/*LifeBarWidget->SetLifePercentage(CurrentHP/MaxHP);*/
+	TakeDamage_Implementation(1);
 	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -473,4 +481,14 @@ void ACombatEnemy::Dash(float Speed, float Distance)
 	DashDirection = (PlayerRef->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
 	DashDistanceRemaining = Distance; 
 	DashSpeed = Speed;
+}
+
+void ACombatEnemy::TakeDamage_Implementation(const float Damage)
+{
+	CurrentHP -= Damage;
+}
+
+void ACombatEnemy::HandleOverlapping_Implementation(AActor* OverlappedActor)
+{
+	Execute_TakeDamage(OverlappedActor, 10.f);
 }

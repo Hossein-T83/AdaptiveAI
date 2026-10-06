@@ -30,7 +30,7 @@ void UCollisionEnableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	{
 		if (C->GetName() == TEXT("WeaponHitBox"))
 		{
-			C->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			C->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			C->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECR_Overlap);
 			break;
 		}

@@ -47,17 +47,24 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	WeaponHitBox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponHitbox"));
+	WeaponHitBox->SetupAttachment(GetMesh(),TEXT("sword_top"));
+	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
+	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HitboxComp->SetGenerateOverlapEvents(true);
+	
 	
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOpponentAdapatationCharacter::OnOverlapBegin);
 }
 
 void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                                   bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
-	Health -= 10;
+	TakeDamage_Implementation(10);
 	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -78,7 +85,7 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Look);
 
-		// Lookingw
+		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Look);
 
@@ -340,4 +347,29 @@ bool AOpponentAdapatationCharacter::StaminaCheck(const ECostActions ActionType)
 	default:
 		return false;
 	}
+}
+
+void AOpponentAdapatationCharacter::DisableWeaponCollision() const
+{
+	TArray<UPrimitiveComponent*> Comps;
+	GetComponents<UPrimitiveComponent>(Comps);
+
+	for (UPrimitiveComponent* C : Comps)
+	{
+		if (C->GetName() == TEXT("WeaponHitBox"))
+		{
+			C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		}
+	}
+}
+
+void AOpponentAdapatationCharacter::TakeDamage_Implementation(const float Damage)
+{
+	Health -= Damage;
+}
+
+void AOpponentAdapatationCharacter::HandleOverlapping_Implementation(AActor* OverlappedActor)
+{
+	Execute_TakeDamage(OverlappedActor, 1.f);
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PlayerAdaptation.h"
+#include "UCombatInterface.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "OpponentAdapatationCharacter.generated.h"
@@ -32,7 +33,7 @@ enum class ECostActions : uint8
  *  Implements a controllable orbiting camera
  */
 UCLASS(abstract)
-class AOpponentAdapatationCharacter : public ACharacter
+class AOpponentAdapatationCharacter : public ACharacter, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -43,6 +44,12 @@ class AOpponentAdapatationCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+	
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UCapsuleComponent> WeaponHitBox;
+	
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UCapsuleComponent> HitboxComp;
 
 protected:
 	/** Jump Input Action */
@@ -88,8 +95,8 @@ public:
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-						bool bFromSweep, const FHitResult& SweepResult);
+	                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	                    bool bFromSweep, const FHitResult& SweepResult);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
 	EPlayerAction CurrentPlayerAction;
@@ -171,4 +178,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Costs")
 	bool StaminaCheck(const ECostActions ActionType);
+
+	UFUNCTION(BlueprintCallable, Category = "Collision")
+	void DisableWeaponCollision() const;
+
+
+public:
+	virtual void TakeDamage_Implementation(const float Damage) override;
+	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
 };

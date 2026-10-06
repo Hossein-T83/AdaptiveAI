@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "CombatAttacker.h"
 #include "CombatDamageable.h"
+#include "UCombatInterface.h"
 #include "Animation/AnimMontage.h"
 #include "Engine/TimerHandle.h"
 #include "CombatEnemy.generated.h"
@@ -47,7 +48,7 @@ enum EEnemyState
 };
 
 UCLASS(abstract)
-class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable
+class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -251,8 +252,14 @@ protected:
 private:
 	void HammerAttack() const;
 	void RollAttack() const;
+	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UCapsuleComponent> WeaponHitBox;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UCapsuleComponent> HitboxComp;
+	
 	float ToppleAlpha = 0.f;
 	FRotator RiseAxis = FRotator(0.0f, 0.0f, 0.0f);
 	float DelayTimer = 0.f;
@@ -280,8 +287,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Combat")
 	void Dash(float Speed, float Distance);
-	
+
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	TObjectPtr<AOpponentAdapatationCharacter> PlayerRef;
 
+	virtual void TakeDamage_Implementation(const float Damage) override;
+	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
 };
