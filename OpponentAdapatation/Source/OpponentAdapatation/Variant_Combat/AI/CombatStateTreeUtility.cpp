@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
 #include "CombatEnemy.h"
+#include "OpponentAdapatationCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeAsyncExecutionContext.h"
 
@@ -341,13 +342,14 @@ EStateTreeRunStatus FStateTreeGetPlayerInfoTask::Tick(FStateTreeExecutionContext
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 
 	// get the character possessed by the first local player
-	InstanceData.TargetPlayerCharacter = Cast<ACharacter>(UGameplayStatics::GetPlayerPawn(InstanceData.Character, 0));
+	InstanceData.TargetPlayerCharacter = Cast<AOpponentAdapatationCharacter>(UGameplayStatics::GetPlayerPawn(InstanceData.Character, 0));
 
 	// do we have a valid target?
 	if (InstanceData.TargetPlayerCharacter)
 	{
 		// update the last known location
 		InstanceData.TargetPlayerLocation = InstanceData.TargetPlayerCharacter->GetActorLocation();
+		InstanceData.Health = InstanceData.TargetPlayerCharacter->Health;
 	}
 
 	// update the distance

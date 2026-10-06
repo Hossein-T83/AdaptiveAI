@@ -8,6 +8,7 @@
 
 #include "CombatStateTreeUtility.generated.h"
 
+class AOpponentAdapatationCharacter;
 class ACharacter;
 class AAIController;
 class ACombatEnemy;
@@ -333,7 +334,7 @@ struct FStateTreeGetPlayerInfoInstanceData
 
 	/** Character that owns this task */
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<ACharacter> TargetPlayerCharacter;
+	TObjectPtr<AOpponentAdapatationCharacter> TargetPlayerCharacter;
 
 	/** Last known location for the target */
 	UPROPERTY(VisibleAnywhere)
@@ -342,6 +343,9 @@ struct FStateTreeGetPlayerInfoInstanceData
 	/** Distance to the target */
 	UPROPERTY(VisibleAnywhere)
 	float DistanceToTarget = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere)
+	float Health = 0.0f;
 };
 
 /**
