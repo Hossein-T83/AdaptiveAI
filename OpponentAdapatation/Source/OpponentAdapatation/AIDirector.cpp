@@ -26,15 +26,23 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 			float HighestScore = -FLT_MAX;
 			for (const auto& Attack : ValidAttacks)
 			{
-				const auto& Prediction = Model->Predict(FPlayerActionContext(Context, Attack.Id));
+				const auto& ContextPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
+				const auto& AttackPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
 				float FinalScore = 0.f;
-				if (AdaptationEnabled && Prediction.Confidence > Model->ConfidenceThreshold)
+				if (AdaptationEnabled)
 				{
-					if (Attack.PunishableActions.Contains(Prediction.Action))
+					if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
+						ContextPrediction.Action))
 					{
-						FinalScore += 10 * Prediction.Confidence;
+						FinalScore += 10 * ContextPrediction.Confidence;
+					}
+					if (AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
+						AttackPrediction)
+					{
+						FinalScore += 10 * AttackPrediction.Confidence;
 					}
 				}
+
 				for (const auto& Tag : Context)
 				{
 					if (const float* Found = Attack.Weights.Find(Tag))
@@ -46,11 +54,11 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 				{
 					HighestScore = FinalScore;
 					HighestScoreId = Attack.Id;
-					Model->UpdateCurrentPrediction(Prediction);
+					Model->UpdateCurrentPrediction(ContextPrediction);
 				}
 			}
-			Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId},
-			                          1.5f /*Delay can be calculated or given by user*/);
+			
+			Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId}, RecordingWindowTime);
 
 			const auto* Found = ValidAttacks.FindByPredicate(
 				[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
@@ -110,6 +118,4 @@ void UAIDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			AttacksOnCooldown.RemoveAt(i);
 		}
 	}
-
-	// ...
 }

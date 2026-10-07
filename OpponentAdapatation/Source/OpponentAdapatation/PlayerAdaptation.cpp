@@ -35,16 +35,27 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	GradePrediction(Action);
 
 	bIsWindowOpen = false;
-	FActionCounts& ActionRef = TableOfContext.FindOrAdd(CurrentContext);
+	FActionCounts& ContextActionRef = TableOfContext.FindOrAdd(CurrentContext.Tags);
+	FActionCounts& AttackActionRef = TableOfAttacks.FindOrAdd(CurrentContext.BossAction);
 
-	for (float& Weight : ActionRef.Weights)
+	for (float& Weight : ContextActionRef.Weights)
 	{
 		Weight *= DecayPerNewContext;
 	}
-	ActionRef.Total *= DecayPerNewContext;
+	
+	for (float& Weight : AttackActionRef.Weights)
+	{
+		Weight *= DecayPerNewContext;
+	}
+	
+	ContextActionRef.Total *= DecayPerNewContext;
+	AttackActionRef.Total *= DecayPerNewContext;
 
-	ActionRef.Weights[static_cast<int32>(Action)] += 1.f;
-	ActionRef.Total += 1.f;
+	ContextActionRef.Weights[static_cast<int32>(Action)] += 1.f;
+	ContextActionRef.Total += 1.f;
+	
+	AttackActionRef.Weights[static_cast<int32>(Action)] += 1.f;
+	AttackActionRef.Total += 1.f;
 
 	LogCurrentContext();
 	LogPrediction();
@@ -57,7 +68,7 @@ void UPlayerAdaptation::LogTable() const
 	for (const auto& Pair : TableOfContext)
 	{
 		const FActionCounts& Counts = Pair.Value;
-		FPlayerActionContext Context = Pair.Key;
+		FGameplayTagContainer Context = Pair.Key;
 		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *Context.ToString());
 		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
 		{
@@ -73,15 +84,14 @@ void UPlayerAdaptation::LogTable() const
 void UPlayerAdaptation::LogCurrentContext() const
 {
 	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
-	const auto& History = TableOfContext.Find(CurrentContext);
-	if (TableOfContext.Contains(CurrentContext))
+	const auto& History = TableOfContext.Find(CurrentContext.Tags);
+	if (TableOfContext.Contains(CurrentContext.Tags))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *CurrentContext.ToString());
 		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
 		{
 			EPlayerAction Action = static_cast<EPlayerAction>(i);
-			float Weight = History->Weights[i];
-			float Confidence = 0;
+			const float Weight = History->Weights[i];
 			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
 		}
 
@@ -172,17 +182,17 @@ void UPlayerAdaptation::SoftReset()
 	Accuracy = 0.f;
 }
 
-FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context)
+FPredictionResult UPlayerAdaptation::PredictBasedOnContext(const FPlayerActionContext& Context)
 {
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
 	FPredictionResult NewPrediction;
-	if (!TableOfContext.Contains(Context))
+	if (!TableOfContext.Contains(Context.Tags))
 	{
 		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
 		return NewPrediction;
 	}
-	auto& ActionHistory = TableOfContext[Context];
+	auto& ActionHistory = TableOfContext[Context.Tags];
 	auto& AllWeights = ActionHistory.Weights;
 	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
 	{
@@ -199,6 +209,36 @@ FPredictionResult UPlayerAdaptation::Predict(const FPlayerActionContext& Context
 
 	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
 	                                  (BestWeight / ActionHistory.Total) * SampleScale);
+	return NewPrediction;
+}
+
+FPredictionResult UPlayerAdaptation::PredictBasedOnAttack(const FPlayerActionContext& Context)
+{
+	int32 BestIndex = 0;
+	float BestWeight = 0.f;
+	FPredictionResult NewPrediction;
+	if (!TableOfAttacks.Contains(Context.BossAction))
+	{
+		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
+		return NewPrediction;
+	}
+	auto& ActionHistory = TableOfAttacks[Context.BossAction];
+	auto& AllWeights = ActionHistory.Weights;
+	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
+	{
+		auto& CurrentWeight = AllWeights[Index];
+		if (CurrentWeight > BestWeight)
+		{
+			BestWeight = CurrentWeight;
+			BestIndex = Index;
+		}
+	}
+
+	const float SampleScale = FMath::Clamp(
+		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
+
+	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
+									  (BestWeight / ActionHistory.Total) * SampleScale);
 	return NewPrediction;
 }
 

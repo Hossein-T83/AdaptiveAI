@@ -53,4 +53,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	bool AdaptationEnabled = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timers")
+	float RecordingWindowTime = 1.5f;
 };

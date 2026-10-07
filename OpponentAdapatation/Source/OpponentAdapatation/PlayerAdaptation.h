@@ -73,11 +73,7 @@ struct FBossAttack
 };
 
 
-inline bool operator==(const FGameplayTagContainer& Tags, const FGameplayTagContainer& Other)
-{
-	return (Tags.Num() == Other.Num()
-		&& Tags.HasAllExact(Other));
-}
+
 
 
 USTRUCT(BlueprintType)
@@ -102,20 +98,16 @@ struct FPlayerActionContext
 			&& Tags.Num() == Other.Tags.Num()
 			&& Tags.HasAllExact(Other.Tags);
 	}
-
-	//Claude
-	friend uint32 GetTypeHash(const FPlayerActionContext& C)
-	{
-		uint32 TagsHash = 0;
-		for (const FGameplayTag& Tag : C.Tags)
-		{
-			// XOR is commutative, so insertion order doesn't affect the result
-			TagsHash ^= GetTypeHash(Tag);
-		}
-
-		return HashCombine(TagsHash, GetTypeHash(C.BossAction));
-	}
 };
+inline uint32 GetTypeHash(const FGameplayTagContainer& C)
+{
+	uint32 TagsHash = 0;
+	for (const FGameplayTag& Tag : C)
+	{
+		TagsHash ^= GetTypeHash(Tag);
+	}
+	return TagsHash;
+}
 
 USTRUCT(BlueprintType)
 struct FPredictionResult
@@ -125,6 +117,11 @@ struct FPredictionResult
 	EPlayerAction Action = EPlayerAction::None;
 	UPROPERTY(BlueprintReadOnly, Category = "Adaptation")
 	float Confidence = 0.f;
+	
+	bool operator==(const FPredictionResult& Other) const
+	{
+		return Action == Other.Action;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -196,7 +193,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning")
 	int32 MinSamplesForConfidence = 5.f;
 
-	FPredictionResult Predict(const FPlayerActionContext& Context);
+	FPredictionResult PredictBasedOnContext(const FPlayerActionContext& Context);
+	FPredictionResult PredictBasedOnAttack(const FPlayerActionContext& Context);
 
 	void UpdateCurrentPrediction(const FPredictionResult& Prediction);
 
@@ -223,7 +221,8 @@ private:
 	bool bIsWindowOpen = false;
 	FPlayerActionContext CurrentContext;
 	float WindowTime = 0.f;
-	TMap<FPlayerActionContext, FActionCounts> TableOfContext{};
+	TMap<FGameplayTagContainer, FActionCounts> TableOfContext{};
+	TMap<int32, FActionCounts> TableOfAttacks{};
 	float CurrentConfidence = 0.f;
 	FPredictionResult CurrentPrediction;
 	float TotalCorrectPredictions = 0.f;
