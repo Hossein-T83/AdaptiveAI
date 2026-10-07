@@ -16,7 +16,7 @@ UAIDirector::UAIDirector()
 	// ...
 }
 
-const FBossAttack UAIDirector::ChooseNextAttack(const FFightContext& Context)
+const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Context)
 {
 	if (Model)
 	{
@@ -35,7 +35,7 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FFightContext& Context)
 						FinalScore += 10 * Prediction.Confidence;
 					}
 				}
-				for (const auto& Tag : Context.Tags)
+				for (const auto& Tag : Context)
 				{
 					if (const float* Found = Attack.Weights.Find(Tag))
 					{
@@ -49,7 +49,7 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FFightContext& Context)
 					Model->UpdateCurrentPrediction(Prediction);
 				}
 			}
-			Model->OpenTrackingWindow(FPlayerActionContext{.Combat = Context, .BossAction = HighestScoreId},
+			Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId},
 			                          1.5f /*Delay can be calculated or given by user*/);
 
 			const auto* Found = ValidAttacks.FindByPredicate(
@@ -66,7 +66,7 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FFightContext& Context)
 	return FBossAttack{};
 }
 
-float UAIDirector::CalculateFinalDelay(const FFightContext& Context) const
+float UAIDirector::CalculateFinalDelay(const FGameplayTagContainer& Context) const
 {
 	const float Multiplier = Rule->Score_Implementation(Context);
 	return BaseDelay * Multiplier;

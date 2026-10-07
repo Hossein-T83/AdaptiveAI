@@ -7,6 +7,7 @@
 #include "AIDirector.generated.h"
 
 
+struct FGameplayTagContainer;
 struct FBossAttack;
 class URuleSet;
 class UPlayerAdaptation;
@@ -22,9 +23,9 @@ public:
 	UAIDirector();
 	
 	UFUNCTION(BlueprintCallable, Category = "Director")
-	const FBossAttack ChooseNextAttack(const FFightContext& Context);
+	const FBossAttack ChooseNextAttack(const FGameplayTagContainer& Context);
 	UFUNCTION(BlueprintCallable, Category = "Director")
-	float CalculateFinalDelay(const FFightContext& Context) const;
+	float CalculateFinalDelay(const FGameplayTagContainer& Context) const;
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	int32 IdToIndex(int32 Id) const;
 

@@ -73,21 +73,12 @@ struct FBossAttack
 };
 
 
-USTRUCT(BlueprintType)
-struct FFightContext
+inline bool operator==(const FGameplayTagContainer& Tags, const FGameplayTagContainer& Other)
 {
-	GENERATED_BODY()
+	return (Tags.Num() == Other.Num()
+		&& Tags.HasAllExact(Other));
+}
 
-	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	FGameplayTagContainer Tags;
-
-
-	bool operator==(const FFightContext& Other) const
-	{
-		return (Tags.Num() == Other.Tags.Num()
-			&& Tags.HasAllExact(Other.Tags));
-	}
-};
 
 USTRUCT(BlueprintType)
 struct FPlayerActionContext
@@ -95,28 +86,28 @@ struct FPlayerActionContext
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
-	FFightContext Combat;
+	FGameplayTagContainer Tags;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Adaptation")
 	int32 BossAction = 0;
 
 	FString ToString() const
 	{
-		return FString::Printf(TEXT("%s, BossAction=%d"), *Combat.Tags.ToString(), BossAction);
+		return FString::Printf(TEXT("%s, BossAction=%d"), *Tags.ToString(), BossAction);
 	}
 
 	bool operator==(const FPlayerActionContext& Other) const
 	{
 		return BossAction == Other.BossAction
-			&& Combat.Tags.Num() == Other.Combat.Tags.Num()
-			&& Combat.Tags.HasAllExact(Other.Combat.Tags);
+			&& Tags.Num() == Other.Tags.Num()
+			&& Tags.HasAllExact(Other.Tags);
 	}
 
 	//Claude
 	friend uint32 GetTypeHash(const FPlayerActionContext& C)
 	{
 		uint32 TagsHash = 0;
-		for (const FGameplayTag& Tag : C.Combat.Tags)
+		for (const FGameplayTag& Tag : C.Tags)
 		{
 			// XOR is commutative, so insertion order doesn't affect the result
 			TagsHash ^= GetTypeHash(Tag);
@@ -216,7 +207,7 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogTable() const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Adaptation|Debug")
 	void LogCurrentContext() const;
 
@@ -238,8 +229,8 @@ private:
 	float TotalCorrectPredictions = 0.f;
 	float TotalPredictions = 0.f;
 	float Accuracy = 0.f;
-	
-public: 
+
+public:
 	void HardReset();
 	void SoftReset();
 };

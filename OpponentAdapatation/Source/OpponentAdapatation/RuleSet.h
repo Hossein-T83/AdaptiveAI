@@ -8,7 +8,6 @@
 #include "RuleSet.generated.h"
 
 struct FGameplayTag;
-struct FFightContext;
 struct FBossAttack;
 
 /**
@@ -21,12 +20,12 @@ class OPPONENTADAPATATION_API URuleSet : public UObject
 
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Score")
-	float Score(const FFightContext& Context) const;
+	float Score(const FGameplayTagContainer& Context) const;
 
-	virtual float Score_Implementation(const FFightContext& Context) const
+	virtual float Score_Implementation(const FGameplayTagContainer& Context) const
 	{
 		float Result = 1.f;
-		for (const auto& Tag : Context.Tags)
+		for (const auto& Tag : Context)
 		{
 			if (const float* Found = Weights.Find(Tag))
 			{
