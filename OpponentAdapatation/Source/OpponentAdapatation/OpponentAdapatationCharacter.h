@@ -76,6 +76,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* RunAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* BlockAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* ParryAction;
 
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DashMontage;
@@ -88,6 +94,10 @@ protected:
 	TObjectPtr<UAnimMontage> DodgeRightMontage;
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DodgeLeftMontage;
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> ParryMontage;
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TObjectPtr<UAnimMontage> BlockMontage;
 
 public:
 	/** Constructor */
@@ -123,6 +133,9 @@ protected:
 	void RunStart(const FInputActionValue& Value);
 	void RunStop();
 	void RunEnd(const FInputActionValue& Value);
+	
+	void Block(const FInputActionValue& Value);
+	void Parry(const FInputActionValue& Value);
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */
@@ -186,4 +199,18 @@ public:
 public:
 	virtual void TakeDamage_Implementation(const float Damage) override;
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
+	
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	bool IsBlocked = false;
+	bool IsParried = false;
+	
+	float ParryWindow = 0.f;
+	float BlockWindow = 0.f;
+	
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void OpenParryWindow(const float Timer);
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void OpenBlockWindow(const float Timer);
+	
 };

@@ -54,8 +54,8 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
 	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	HitboxComp->SetGenerateOverlapEvents(true);
-	
-	
+
+
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOpponentAdapatationCharacter::OnOverlapBegin);
 }
 
@@ -64,8 +64,10 @@ void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* Overlapp
                                                    bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
-	TakeDamage_Implementation(10);
+	if (!IsParried) TakeDamage_Implementation(10);
 	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	IsParried = false;
+	IsBlocked = false;
 }
 
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -101,6 +103,11 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this,
 		                                   &AOpponentAdapatationCharacter::RunEnd);
+
+		EnhancedInputComponent->BindAction(ParryAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::Parry);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this,
+		                                   &AOpponentAdapatationCharacter::Block);
 	}
 	else
 	{
@@ -132,6 +139,16 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 		{
 			Stamina = NewStamina;
 		}
+	}
+
+	if (ParryWindow > 0.f)
+	{
+		ParryWindow -= DeltaTime;
+	}
+
+	if (BlockWindow > 0.f)
+	{
+		BlockWindow -= DeltaTime;
 	}
 }
 
@@ -263,6 +280,30 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 	RunStop();
 }
 
+void AOpponentAdapatationCharacter::Block(const FInputActionValue& Value)
+{
+	if (bIsBusy) return;
+	bIsBusy = true;
+	if (BlockWindow > 0.f)
+	{
+		IsBlocked = true;
+		BlockWindow = 0.f;
+	}
+	PlayAnimMontage(BlockMontage);
+}
+
+void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
+{
+	if (bIsBusy) return;
+	bIsBusy = true;
+	if (ParryWindow > 0.f)
+	{
+		IsParried = true;
+		ParryWindow = 0.f;
+	}
+	PlayAnimMontage(ParryMontage);
+}
+
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr && !bIsBusy)
@@ -372,4 +413,14 @@ void AOpponentAdapatationCharacter::TakeDamage_Implementation(const float Damage
 void AOpponentAdapatationCharacter::HandleOverlapping_Implementation(AActor* OverlappedActor)
 {
 	Execute_TakeDamage(OverlappedActor, 1.f);
+}
+
+void AOpponentAdapatationCharacter::OpenParryWindow(const float Timer)
+{
+	ParryWindow = Timer;
+}
+
+void AOpponentAdapatationCharacter::OpenBlockWindow(const float Timer)
+{
+	BlockWindow = Timer;
 }
