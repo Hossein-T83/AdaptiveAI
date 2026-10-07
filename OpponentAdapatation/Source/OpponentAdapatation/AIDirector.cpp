@@ -36,7 +36,7 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 					{
 						FinalScore += 10 * ContextPrediction.Confidence;
 					}
-					if (AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
+					if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
 						AttackPrediction)
 					{
 						FinalScore += 10 * AttackPrediction.Confidence;

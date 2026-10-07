@@ -51,9 +51,12 @@ public:
 	
 	TArray<FBossAttack> AttacksOnCooldown;
 	
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	bool AdaptationEnabled = true;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timers")
 	float RecordingWindowTime = 1.5f;
+	
+	UPROPERTY(EditAnywhere, Category = "Flags")
+	bool AdaptationEnabled = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flags")
+	bool FightContextOnly = false;
 };
