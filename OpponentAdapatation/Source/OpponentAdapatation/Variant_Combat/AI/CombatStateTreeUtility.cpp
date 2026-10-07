@@ -415,15 +415,4 @@ FText FStateTreeWalkAroundTask::GetDescription(const FGuid& ID, FStateTreeDataVi
 {
 	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
 }
-
-bool FIsStandingCondition::TestCondition(FStateTreeExecutionContext& Context) const
-{
-	const FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-
-	if (const ACombatEnemy* Enemy = Cast<ACombatEnemy>(InstanceData.Character))
-	{
-		return Enemy->GetCurrentState() == EEnemyState::Standing;
-	}
-	return false;
-}
 #endif // WITH_EDITOR

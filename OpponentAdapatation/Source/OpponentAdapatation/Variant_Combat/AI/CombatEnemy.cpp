@@ -42,10 +42,6 @@ ACombatEnemy::ACombatEnemy()
 	// reset HP to maximum
 	CurrentHP = MaxHP;
 	
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
-	StaticMeshComp->SetupAttachment(GetMesh());
-	StaticMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
 	WeaponHitBox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponHitbox"));
 	WeaponHitBox->SetupAttachment(GetMesh(),TEXT("weapon_r"));
 	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -371,109 +367,16 @@ void ACombatEnemy::EndPlay(EEndPlayReason::Type EndPlayReason)
 	GetWorld()->GetTimerManager().ClearTimer(DeathTimer);
 }
 
-void ACombatEnemy::HammerAttack() const
-{
-	const FRotator Current = FMath::Lerp(FRotator::ZeroRotator, FRotator(0.f, 0.f, 90.f), ToppleAlpha);
-	StaticMeshComp->SetRelativeRotation(Current);
-}
-
-void ACombatEnemy::RollAttack() const
-{
-	const FRotator Current = FMath::Lerp(FRotator::ZeroRotator, FRotator(90.f, 0.f, 0.f), ToppleAlpha);
-	StaticMeshComp->SetRelativeRotation(Current);
-}
 
 void ACombatEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*if (!StaticMeshComp) return;
-
-	if (bIsAttacking)
-	{
-		switch (CurrentAttackType)
-		{
-		case EAttackType::HammerAttack:
-			{
-				ToppleAlpha = FMath::Min(ToppleAlpha + DeltaTime / ToppleDuration, 1.f);
-				HammerAttack();
-				if (ToppleAlpha >= 1.f)
-				{
-					CurrentState = EEnemyState::Toppled;
-					bIsAttacking = false;
-				}
-				break;
-			}
-		case EAttackType::RollAttack:
-			{
-				ToppleAlpha = FMath::Min(ToppleAlpha + DeltaTime / ToppleDuration, 1.f);
-				RollAttack();
-				if (ToppleAlpha >= 1.f)
-				{
-					CurrentState = EEnemyState::Rolling;
-					LaunchCharacter(GetActorForwardVector() * 5000.f, true, true);
-					bIsAttacking = false;
-				}
-				break;
-			}
-		case EAttackType::CircleAttack:
-			{
-				break;
-			}
-		}
-	}
-
-	switch (CurrentState)
-	{
-	case EEnemyState::Standing:
-		{
-			break;
-		}
-	case EEnemyState::Toppled:
-		{
-			RiseAxis = FRotator(0.f, 0.f, 90.f);
-			DelayTimer = 1.f;
-			CurrentState = EEnemyState::Waiting;
-			break;
-		}
-	case EEnemyState::Rising:
-		{
-			ToppleAlpha = FMath::Max(ToppleAlpha - DeltaTime / ToppleDuration, 0.f);
-			const FRotator Current = FMath::Lerp(FRotator::ZeroRotator, RiseAxis, ToppleAlpha);
-			StaticMeshComp->SetRelativeRotation(Current);
-			if (ToppleAlpha <= 0.f)
-			{
-				CurrentState = EEnemyState::Standing;
-			}
-			break;
-		}
-	case EEnemyState::Rolling:
-		{
-			RiseAxis = FRotator(90.f, 0.f, 0.f);
-			DelayTimer = 2.f;
-			CurrentState = EEnemyState::Waiting;
-			break;
-		}
-	case EEnemyState::Waiting:
-		{
-			DelayTimer -= DeltaTime;
-			if (DelayTimer < 0.f)
-			{
-				CurrentState = EEnemyState::Rising;
-				ToppleDuration = CurrentDelay * 0.5f;
-			}
-		}
-	}*/
 	if (DashDistanceRemaining > 0.f)
 	{
 		const float Step = FMath::Min(DashSpeed * DeltaTime, DashDistanceRemaining);
 		AddActorWorldOffset(DashDirection * Step, true);   // sweep = stops on collision
 		DashDistanceRemaining -= Step;
 	}
-}
-
-EEnemyState ACombatEnemy::GetCurrentState() const
-{
-	return CurrentState;
 }
 
 void ACombatEnemy::Dash(float Speed, float Distance)

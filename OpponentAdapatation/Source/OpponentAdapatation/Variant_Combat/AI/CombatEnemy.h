@@ -30,22 +30,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyDied);
  *  Its bundled AI Controller runs logic through StateTree
  */
 
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	HammerAttack,
-	RollAttack,
-	CircleAttack
-};
 
-enum EEnemyState
-{
-	Toppled,
-	Standing,
-	Rising,
-	Rolling,
-	Waiting
-};
 
 UCLASS(abstract)
 class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable, public ICombatInterface
@@ -248,32 +233,19 @@ protected:
 
 	/** EndPlay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-
-private:
-	void HammerAttack() const;
-	void RollAttack() const;
 	
-	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> WeaponHitBox;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> HitboxComp;
-	
-	float ToppleAlpha = 0.f;
-	FRotator RiseAxis = FRotator(0.0f, 0.0f, 0.0f);
-	float DelayTimer = 0.f;
-	EEnemyState CurrentState = EEnemyState::Standing;
+
+private:
 	bool bIsDashing = false;
 	FVector DashDirection = FVector(0.0f, 0.0f, 0.0f);
 	float DashDistanceRemaining = 0.f;
 	float DashSpeed = 0.f;
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
-	float ToppleDuration = 1.f;
-	UPROPERTY(BlueprintReadWrite, Category="Combat")
-	EAttackType CurrentAttackType;
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	float CurrentDelay = 0.f;
 	virtual void Tick(float DeltaTime) override;
@@ -282,8 +254,6 @@ public:
 	{
 		return bIsAttacking;
 	}
-
-	EEnemyState GetCurrentState() const;
 
 	UFUNCTION(BlueprintCallable, Category="Combat")
 	void Dash(float Speed, float Distance);
