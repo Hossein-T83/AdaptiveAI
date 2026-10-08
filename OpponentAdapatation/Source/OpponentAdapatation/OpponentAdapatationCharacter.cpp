@@ -64,10 +64,10 @@ void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* Overlapp
                                                    bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
-	if (!IsParried) TakeDamage_Implementation(10);
+	if (!bIsParried) TakeDamage_Implementation(10);
 	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	IsParried = false;
-	IsBlocked = false;
+	bIsParried = false;
+	bIsBlocked = false;
 }
 
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -106,8 +106,11 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 
 		EnhancedInputComponent->BindAction(ParryAction, ETriggerEvent::Triggered, this,
 		                                   &AOpponentAdapatationCharacter::Parry);
-		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this,
-		                                   &AOpponentAdapatationCharacter::Block);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this,
+		                                   &AOpponentAdapatationCharacter::BlockStart);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this,
+										   &AOpponentAdapatationCharacter::BlockEnd);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Canceled, this, &AOpponentAdapatationCharacter::BlockEnd);
 	}
 	else
 	{
@@ -280,16 +283,20 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 	RunStop();
 }
 
-void AOpponentAdapatationCharacter::Block(const FInputActionValue& Value)
+void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 {
 	if (bIsBusy) return;
-	bIsBusy = true;
+	bIsBlocked = true;
 	if (BlockWindow > 0.f)
 	{
-		IsBlocked = true;
 		BlockWindow = 0.f;
 	}
-	PlayAnimMontage(BlockMontage);
+}
+
+void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
+{
+	bIsBusy = false;
+	bIsBlocked = false;
 }
 
 void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
@@ -298,7 +305,7 @@ void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
 	bIsBusy = true;
 	if (ParryWindow > 0.f)
 	{
-		IsParried = true;
+		bIsParried = true;
 		ParryWindow = 0.f;
 	}
 	PlayAnimMontage(ParryMontage);

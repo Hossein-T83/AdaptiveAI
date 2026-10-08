@@ -10,7 +10,7 @@ enum class EPlayerAction : uint8
 	DodgeLeft,
 	DodgeRight,
 	DodgeBack,
-	DodgeForward,
+	DodgeForward, 
 	Parry,
 	Block,
 	RollLeft,

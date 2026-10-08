@@ -134,7 +134,8 @@ protected:
 	void RunStop();
 	void RunEnd(const FInputActionValue& Value);
 	
-	void Block(const FInputActionValue& Value);
+	void BlockStart(const FInputActionValue& Value);
+	void BlockEnd(const FInputActionValue& Value);
 	void Parry(const FInputActionValue& Value);
 
 public:
@@ -202,8 +203,8 @@ public:
 	
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
-	bool IsBlocked = false;
-	bool IsParried = false;
+	bool bIsBlocked = false;
+	bool bIsParried = false;
 	
 	float ParryWindow = 0.f;
 	float BlockWindow = 0.f;
