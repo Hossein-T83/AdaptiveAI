@@ -64,10 +64,11 @@ void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* Overlapp
                                                    bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == this) return;
-	if (!bIsParried) TakeDamage_Implementation(10);
+	if (bIsBlocking && BlockWindow > 0.f) TakeDamage_Implementation(10 * BlockDmgRatio);
+	else if (!bIsParried) TakeDamage_Implementation(10);
 	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	bIsParried = false;
-	bIsBlocked = false;
+	bIsBlocking = false;
 }
 
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -138,9 +139,12 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 	}
 	else
 	{
-		if (const float NewStamina = Stamina + DeltaTime * RegainStaminaRate; NewStamina < MaxStamina)
+		if (!bIsBlocking)
 		{
-			Stamina = NewStamina;
+			if (const float NewStamina = Stamina + DeltaTime * RegainStaminaRate; NewStamina < MaxStamina)
+			{
+				Stamina = NewStamina;
+			}
 		}
 	}
 
@@ -286,7 +290,7 @@ void AOpponentAdapatationCharacter::RunEnd(const FInputActionValue& Value)
 void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 {
 	if (bIsBusy) return;
-	bIsBlocked = true;
+	bIsBlocking = true;
 	if (BlockWindow > 0.f)
 	{
 		BlockWindow = 0.f;
@@ -296,7 +300,7 @@ void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
 {
 	bIsBusy = false;
-	bIsBlocked = false;
+	bIsBlocking = false;
 }
 
 void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
@@ -307,6 +311,10 @@ void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
 	{
 		bIsParried = true;
 		ParryWindow = 0.f;
+	}
+	else
+	{
+		Stamina -= ParryCost;
 	}
 	PlayAnimMontage(ParryMontage);
 }
@@ -422,12 +430,10 @@ void AOpponentAdapatationCharacter::HandleOverlapping_Implementation(AActor* Ove
 	Execute_TakeDamage(OverlappedActor, 1.f);
 }
 
-void AOpponentAdapatationCharacter::OpenParryWindow(const float Timer)
+void AOpponentAdapatationCharacter::OpenParryBlockWindow(const float ParryTimer, const float BlockTimer)
 {
-	ParryWindow = Timer;
+	ParryWindow = ParryTimer;
+	BlockWindow = BlockTimer;
 }
 
-void AOpponentAdapatationCharacter::OpenBlockWindow(const float Timer)
-{
-	BlockWindow = Timer;
-}
+

@@ -96,8 +96,6 @@ protected:
 	TObjectPtr<UAnimMontage> DodgeLeftMontage;
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> ParryMontage;
-	UPROPERTY(EditAnywhere, Category="Animation")
-	TObjectPtr<UAnimMontage> BlockMontage;
 
 public:
 	/** Constructor */
@@ -183,6 +181,11 @@ public:
 	float RunCost = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RegainStaminaRate = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float ParryCost = 5.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float BlockDmgRatio = 0.5f;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
@@ -203,15 +206,13 @@ public:
 	
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Combat")
-	bool bIsBlocked = false;
+	bool bIsBlocking = false;
 	bool bIsParried = false;
 	
 	float ParryWindow = 0.f;
 	float BlockWindow = 0.f;
 	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void OpenParryWindow(const float Timer);
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void OpenBlockWindow(const float Timer);
+	void OpenParryBlockWindow(const float ParryTimer, const float BlockTimer);
 	
 };
