@@ -205,8 +205,9 @@ public:
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
 	
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsBlocking = false;
+	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsParried = false;
 	
 	float ParryWindow = 0.f;

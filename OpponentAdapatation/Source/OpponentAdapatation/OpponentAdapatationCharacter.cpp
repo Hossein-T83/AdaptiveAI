@@ -299,7 +299,6 @@ void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
 {
-	bIsBusy = false;
 	bIsBlocking = false;
 }
 
