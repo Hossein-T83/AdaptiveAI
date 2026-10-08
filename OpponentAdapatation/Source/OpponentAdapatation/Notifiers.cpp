@@ -22,8 +22,8 @@ void UCollisionEnableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	Super::Notify(MeshComp, Animation, EventRef);
 	AActor* Owner = MeshComp->GetOwner();
 	if (!Owner) return;
-
-	TArray<UPrimitiveComponent*> Comps;
+	ICombatInterface::Execute_EnableDamage(Owner);
+	/*TArray<UPrimitiveComponent*> Comps;
 	Owner->GetComponents<UPrimitiveComponent>(Comps);
 
 	for (UPrimitiveComponent* C : Comps)
@@ -34,7 +34,7 @@ void UCollisionEnableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 			C->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECR_Overlap);
 			break;
 		}
-	}
+	}*/
 }
 
 void UCollisionDisableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -43,8 +43,8 @@ void UCollisionDisableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	Super::Notify(MeshComp, Animation, EventRef);
 	AActor* Owner = MeshComp->GetOwner();
 	if (!Owner) return;
-
-	TArray<UPrimitiveComponent*> Comps;
+	ICombatInterface::Execute_DisableDamage(Owner);
+	/*TArray<UPrimitiveComponent*> Comps;
 	Owner->GetComponents<UPrimitiveComponent>(Comps);
 
 	for (UPrimitiveComponent* C : Comps)
@@ -54,5 +54,5 @@ void UCollisionDisableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			break;
 		}
-	}
+	}*/
 }

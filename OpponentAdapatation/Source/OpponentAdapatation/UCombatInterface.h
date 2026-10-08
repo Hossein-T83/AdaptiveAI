@@ -17,4 +17,8 @@ class ICombatInterface
 	void TakeDamage(const float Damage);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = CombatInterface)
 	void HandleOverlapping(AActor* OverlappedActor);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = CombatInterface)
+	void EnableDamage();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = CombatInterface)
+	void DisableDamage();
 };

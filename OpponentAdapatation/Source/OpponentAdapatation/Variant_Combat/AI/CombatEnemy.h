@@ -238,12 +238,18 @@ protected:
 	TObjectPtr<UCapsuleComponent> WeaponHitBox;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> HitboxComp;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> WeaponBegin;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> WeaponEnd;
 
 private:
 	bool bIsDashing = false;
 	FVector DashDirection = FVector(0.0f, 0.0f, 0.0f);
 	float DashDistanceRemaining = 0.f;
 	float DashSpeed = 0.f;
+	
+	bool bIsDealingDmg = false;
 
 public:
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
@@ -263,4 +269,6 @@ public:
 
 	virtual void TakeDamage_Implementation(const float Damage) override;
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
+	virtual void EnableDamage_Implementation() override;
+	virtual void DisableDamage_Implementation() override;
 };

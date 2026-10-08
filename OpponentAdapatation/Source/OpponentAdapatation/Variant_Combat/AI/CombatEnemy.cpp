@@ -12,6 +12,7 @@
 #include "TimerManager.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Components/ArrowComponent.h"
 
 ACombatEnemy::ACombatEnemy()
 {
@@ -50,16 +51,20 @@ ACombatEnemy::ACombatEnemy()
 	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	HitboxComp->SetGenerateOverlapEvents(true);   
 	
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ACombatEnemy::OnOverlapBegin);
+	WeaponBegin = CreateDefaultSubobject<UArrowComponent>(TEXT("WeaponBegin"));
+	WeaponBegin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponBegin->SetupAttachment(GetMesh(),TEXT("weapon_r"));
+	WeaponEnd = CreateDefaultSubobject<UArrowComponent>(TEXT("WeaponEnd"));
+	WeaponEnd->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponEnd->SetupAttachment(GetMesh(),TEXT("weapon_r"));
+
 }
 
 void ACombatEnemy::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                   const FHitResult& SweepResult)
 {
-	if (!OtherActor || OtherActor == this) return;
-	TakeDamage_Implementation(1);
-	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 }
 
 void ACombatEnemy::DoAIComboAttack()
@@ -377,6 +382,26 @@ void ACombatEnemy::Tick(float DeltaTime)
 		AddActorWorldOffset(DashDirection * Step, true);   // sweep = stops on collision
 		DashDistanceRemaining -= Step;
 	}
+	
+	if (bIsDealingDmg)
+	{
+		FHitResult Hit;
+		GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
+											 WeaponEnd->GetComponentLocation(), ECC_Pawn);
+
+		if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
+		{
+			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
+			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
+			Execute_TakeDamage(HitActor, 1.f);
+			bIsDealingDmg = false;
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
+			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
+		}
+	}
 }
 
 void ACombatEnemy::Dash(float Speed, float Distance)
@@ -395,3 +420,14 @@ void ACombatEnemy::HandleOverlapping_Implementation(AActor* OverlappedActor)
 {
 	Execute_TakeDamage(OverlappedActor, 10.f);
 }
+
+void ACombatEnemy::EnableDamage_Implementation()
+{
+	bIsDealingDmg = true;
+}
+
+void ACombatEnemy::DisableDamage_Implementation()
+{
+	bIsDealingDmg = false;
+}
+

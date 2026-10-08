@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "OpponentAdapatation.h"
 #include "PlayerAdaptation.h"
+#include "Components/ArrowComponent.h"
 
 AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 {
@@ -53,10 +54,14 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 
 	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
 	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	HitboxComp->SetGenerateOverlapEvents(true);
 
-
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOpponentAdapatationCharacter::OnOverlapBegin);
+	WeaponBegin = CreateDefaultSubobject<UArrowComponent>(TEXT("WeaponBegin"));
+	WeaponBegin->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponBegin->SetupAttachment(GetMesh(),TEXT("sword_top"));
+	WeaponEnd = CreateDefaultSubobject<UArrowComponent>(TEXT("WeaponEnd"));
+	WeaponEnd->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponEnd->SetupAttachment(GetMesh(),TEXT("sword_top"));
+	
 }
 
 void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -110,8 +115,9 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this,
 		                                   &AOpponentAdapatationCharacter::BlockStart);
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this,
-										   &AOpponentAdapatationCharacter::BlockEnd);
-		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Canceled, this, &AOpponentAdapatationCharacter::BlockEnd);
+		                                   &AOpponentAdapatationCharacter::BlockEnd);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Canceled, this,
+		                                   &AOpponentAdapatationCharacter::BlockEnd);
 	}
 	else
 	{
@@ -125,6 +131,24 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bIsDealingDmg)
+	{
+		FHitResult Hit;
+		GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
+		                                     WeaponEnd->GetComponentLocation(), ECC_Pawn);
+		if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
+		{
+			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
+			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
+			Execute_TakeDamage(HitActor, 1.f);
+			bIsDealingDmg = false;
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
+			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
+		}
+	}
 	if (bIsRunning)
 	{
 		if (const float NewStamina = Stamina - DeltaTime * RunCost; NewStamina > 0)
@@ -135,7 +159,7 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 		{
 			RunStop();
 			Stamina = 0;
-		}
+		}  
 	}
 	else
 	{
@@ -429,10 +453,18 @@ void AOpponentAdapatationCharacter::HandleOverlapping_Implementation(AActor* Ove
 	Execute_TakeDamage(OverlappedActor, 1.f);
 }
 
+void AOpponentAdapatationCharacter::EnableDamage_Implementation()
+{
+	bIsDealingDmg = true;
+}
+
+void AOpponentAdapatationCharacter::DisableDamage_Implementation()
+{
+	bIsDealingDmg = false;
+}
+
 void AOpponentAdapatationCharacter::OpenParryBlockWindow(const float ParryTimer, const float BlockTimer)
 {
 	ParryWindow = ParryTimer;
 	BlockWindow = BlockTimer;
 }
-
-

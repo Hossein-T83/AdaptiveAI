@@ -50,6 +50,11 @@ class AOpponentAdapatationCharacter : public ACharacter, public ICombatInterface
 	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> HitboxComp;
+	
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> WeaponBegin;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<UArrowComponent> WeaponEnd;
 
 protected:
 	/** Jump Input Action */
@@ -203,17 +208,24 @@ public:
 public:
 	virtual void TakeDamage_Implementation(const float Damage) override;
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
+	virtual void EnableDamage_Implementation() override;
+	virtual void DisableDamage_Implementation() override;
 	
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsBlocking = false;
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsParried = false;
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsAttacking = false;
 	
 	float ParryWindow = 0.f;
 	float BlockWindow = 0.f;
 	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void OpenParryBlockWindow(const float ParryTimer, const float BlockTimer);
+	
+private: 
+	bool bIsDealingDmg = false;
 	
 };
