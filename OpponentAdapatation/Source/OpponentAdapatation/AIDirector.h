@@ -59,4 +59,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flags")
 	bool FightContextOnly = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bonus")
+	float ContextBonus = 5.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bonus")
+	float AttackBonus = 10.f;
+	
 };

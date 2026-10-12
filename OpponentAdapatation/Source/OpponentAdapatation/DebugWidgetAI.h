@@ -24,9 +24,12 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> SelectedAttack;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> Confidence;
 
 	UFUNCTION(BlueprintCallable, Category = "Debug")
-	void Refresh(const FString& State, const FString& Prediction, const FString& Attack, const float DeltaTime);
+	void Refresh(const FPredictionResult& Prediction, const FString& Attack, const float DeltaTime);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	TObjectPtr<AActor> EnemyPtr;

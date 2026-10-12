@@ -45,21 +45,24 @@ public:
 	/** Constructor */
 	ACombatEnemy();
 
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-	                    bool bFromSweep, const FHitResult& SweepResult);
-
 	/** Current amount of HP the character has */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Attributes")
 	float CurrentHP = 0.0f;
 
 	/** Max amount of HP the character will have on respawn */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Damage")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Attributes")
 	float MaxHP = 3.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Distance")
 	float DistanceToPlayer = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float CurrentDamage = 10.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float CurrentPose = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float MaxPoseBeforeBreak = 100.f;
 
 protected:
 	/** Name of the pelvis bone, for damage ragdoll physics */
@@ -216,7 +219,7 @@ protected:
 
 public:
 	/** Overrides the default TakeDamage functionality */
-	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
+	virtual float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
 	                         AActor* DamageCauser) override;
 
 	/** Overrides landing to reset damage ragdoll physics */
@@ -225,7 +228,7 @@ public:
 protected:
 	/** Blueprint handler to play damage received effects */
 	UFUNCTION(BlueprintImplementableEvent, Category="Combat")
-	void ReceivedDamage(float Damage, const FVector& ImpactPoint, const FVector& DamageDirection);
+	void ReceivedDamage(float DamageReceived, const FVector& ImpactPoint, const FVector& DamageDirection);
 
 protected:
 	/** Gameplay initialization */
@@ -233,7 +236,8 @@ protected:
 
 	/** EndPlay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-	
+	void AttackTrace();
+
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> WeaponHitBox;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))

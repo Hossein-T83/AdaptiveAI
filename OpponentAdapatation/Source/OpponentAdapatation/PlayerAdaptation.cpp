@@ -83,7 +83,7 @@ void UPlayerAdaptation::LogTable() const
 
 void UPlayerAdaptation::LogCurrentContext() const
 {
-	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
+ 	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
 	const auto& History = TableOfContext.Find(CurrentContext.Tags);
 	if (TableOfContext.Contains(CurrentContext.Tags))
 	{

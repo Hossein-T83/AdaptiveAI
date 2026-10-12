@@ -2,16 +2,15 @@
 
 
 #include "DebugWidgetAI.h"
-
-#include <string>
+#include "AdaptationUtility.h"
 #include "Components/TextBlock.h"
 
 
-void UDebugWidgetAI::Refresh(const FString& State, const FString& Prediction, const FString& Attack, const float DeltaTime)
+void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString& Attack, const float DeltaTime)
 {
 	if (PredictionText)
 		PredictionText->SetText(FText::FromString(
-			FString::Printf(TEXT("Predicted action: %s"), *Prediction)));
+			FString::Printf(TEXT("Predicted action: %s"), *UEnum::GetValueAsString(Prediction.Action))));
 	if (TimerText)
 	{
 		if (TimerRemaining > 0)
@@ -24,6 +23,11 @@ void UDebugWidgetAI::Refresh(const FString& State, const FString& Prediction, co
 	{
 		SelectedAttack->SetText(FText::FromString(
 			FString::Printf(TEXT("Selected attack: %s"), *Attack)));
+	}
+	if (Confidence)
+	{
+		Confidence->SetText(FText::FromString(
+	FString::Printf(TEXT("Confidence: %.2f"), Prediction.Confidence)));
 	}
 }
 

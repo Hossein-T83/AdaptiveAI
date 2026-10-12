@@ -34,12 +34,12 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 					if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
 						ContextPrediction.Action))
 					{
-						FinalScore += 10 * ContextPrediction.Confidence;
+						FinalScore += ContextBonus * ContextPrediction.Confidence;
 					}
 					if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
 						AttackPrediction)
 					{
-						FinalScore += 10 * AttackPrediction.Confidence;
+						FinalScore += AttackBonus * AttackPrediction.Confidence;
 					}
 				}
 

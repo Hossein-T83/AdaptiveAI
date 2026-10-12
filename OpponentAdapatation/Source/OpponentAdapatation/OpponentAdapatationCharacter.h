@@ -106,11 +106,6 @@ public:
 	/** Constructor */
 	AOpponentAdapatationCharacter();
 
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-	                    bool bFromSweep, const FHitResult& SweepResult);
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation")
 	EPlayerAction CurrentPlayerAction;
 
@@ -120,6 +115,7 @@ public:
 protected:
 	/** Initialize input action bindings */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void AttackTrace();
 	virtual void Tick(float DeltaTime) override;
 
 protected:
@@ -175,6 +171,14 @@ public:
 	float MaxStamina = 75.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	float Stamina = MaxStamina;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float CurrentPose = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float MaxPoseBeforeBreak = 100.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
+	float CurrentDamage = 1.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float DodgeCost = 15.0f;
@@ -222,8 +226,15 @@ public:
 	float ParryWindow = 0.f;
 	float BlockWindow = 0.f;
 	
+	bool HasBroadcastedBlock = false;
+	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void OpenParryBlockWindow(const float ParryTimer, const float BlockTimer);
+	
+	void CheckParryBlock(float& Damage);
+	
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void BroadcastBlock();
 	
 private: 
 	bool bIsDealingDmg = false;

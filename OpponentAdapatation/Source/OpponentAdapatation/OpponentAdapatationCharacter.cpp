@@ -64,18 +64,6 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 	
 }
 
-void AOpponentAdapatationCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                                   bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (!OtherActor || OtherActor == this) return;
-	if (bIsBlocking && BlockWindow > 0.f) TakeDamage_Implementation(10 * BlockDmgRatio);
-	else if (!bIsParried) TakeDamage_Implementation(10);
-	OtherComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	bIsParried = false;
-	bIsBlocking = false;
-}
-
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -128,26 +116,31 @@ void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* P
 	}
 }
 
+void AOpponentAdapatationCharacter::AttackTrace()
+{
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
+	                                     WeaponEnd->GetComponentLocation(), ECC_Pawn);
+	if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
+	{
+		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
+		Execute_TakeDamage(HitActor, CurrentDamage);
+		bIsDealingDmg = false;
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
+	}
+}
+
 void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (bIsDealingDmg)
 	{
-		FHitResult Hit;
-		GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
-		                                     WeaponEnd->GetComponentLocation(), ECC_Pawn);
-		if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
-		{
-			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
-			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
-			Execute_TakeDamage(HitActor, 1.f);
-			bIsDealingDmg = false;
-		}
-		else
-		{
-			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
-			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
-		}
+		AttackTrace();
 	}
 	if (bIsRunning)
 	{
@@ -319,11 +312,13 @@ void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 	{
 		BlockWindow = 0.f;
 	}
+	OnPlayerActionRecorded.Broadcast(EPlayerAction::Block);
 }
 
 void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
 {
 	bIsBlocking = false;
+	HasBroadcastedBlock = false;	
 }
 
 void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
@@ -340,6 +335,7 @@ void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
 		Stamina -= ParryCost;
 	}
 	PlayAnimMontage(ParryMontage);
+	OnPlayerActionRecorded.Broadcast(EPlayerAction::Parry);
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
@@ -467,4 +463,21 @@ void AOpponentAdapatationCharacter::OpenParryBlockWindow(const float ParryTimer,
 {
 	ParryWindow = ParryTimer;
 	BlockWindow = BlockTimer;
+}
+
+void AOpponentAdapatationCharacter::CheckParryBlock(float& Damage)
+{
+	if (bIsBlocking && BlockWindow > 0.f) Damage *= BlockDmgRatio;
+	else if (bIsParried) Damage = 0.f;
+	bIsParried = false;
+	bIsBlocking = false;
+}
+
+void AOpponentAdapatationCharacter::BroadcastBlock()
+{
+	if (!HasBroadcastedBlock)
+	{
+		OnPlayerActionRecorded.Broadcast(EPlayerAction::Block);
+		HasBroadcastedBlock = true;	
+	}
 }

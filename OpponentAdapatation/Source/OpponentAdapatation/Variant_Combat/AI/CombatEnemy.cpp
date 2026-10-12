@@ -60,13 +60,6 @@ ACombatEnemy::ACombatEnemy()
 
 }
 
-void ACombatEnemy::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                  const FHitResult& SweepResult)
-{
-
-}
-
 void ACombatEnemy::DoAIComboAttack()
 {
 	// ignore if we're already playing an attack animation
@@ -301,7 +294,7 @@ void ACombatEnemy::RemoveFromLevel()
 	Destroy();
 }
 
-float ACombatEnemy::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
+float ACombatEnemy::TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator,
                                AActor* DamageCauser)
 {
 	// only process damage if the character is still alive
@@ -311,7 +304,7 @@ float ACombatEnemy::TakeDamage(float Damage, struct FDamageEvent const& DamageEv
 	}
 
 	// reduce the current HP
-	CurrentHP -= Damage;
+	CurrentHP -= DamageTaken;
 
 	// have we run out of HP?
 	if (CurrentHP <= 0.0f)
@@ -330,7 +323,7 @@ float ACombatEnemy::TakeDamage(float Damage, struct FDamageEvent const& DamageEv
 	}
 
 	// return the received damage amount
-	return Damage;
+	return DamageTaken;
 }
 
 void ACombatEnemy::Landed(const FHitResult& Hit)
@@ -373,6 +366,27 @@ void ACombatEnemy::EndPlay(EEndPlayReason::Type EndPlayReason)
 }
 
 
+void ACombatEnemy::AttackTrace()
+{
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
+	                                     WeaponEnd->GetComponentLocation(), ECC_Pawn);
+
+	if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
+	{
+		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
+		PlayerRef->CheckParryBlock(CurrentDamage);
+		Execute_TakeDamage(HitActor, CurrentDamage);
+		bIsDealingDmg = false;
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
+	}
+}
+
 void ACombatEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -385,22 +399,8 @@ void ACombatEnemy::Tick(float DeltaTime)
 	
 	if (bIsDealingDmg)
 	{
-		FHitResult Hit;
-		GetWorld()->LineTraceSingleByChannel(Hit, WeaponBegin->GetComponentLocation(),
-											 WeaponEnd->GetComponentLocation(), ECC_Pawn);
-
-		if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
-		{
-			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
-			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
-			Execute_TakeDamage(HitActor, 1.f);
-			bIsDealingDmg = false;
-		}
-		else
-		{
-			DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
-			DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
-		}
+		if (PlayerRef->bIsBlocking) PlayerRef->BroadcastBlock();
+		AttackTrace();
 	}
 }
 
