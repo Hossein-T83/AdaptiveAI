@@ -15,6 +15,8 @@ UPlayerAdaptation::UPlayerAdaptation()
 
 void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, float WindowSeconds)
 {
+	// A new attack while a window is still open means the player never responded to the last
+	// one. Close it so that non-response is recorded rather than silently dropped.
 	if (bIsWindowOpen)
 	{
 		CloseTrackingWindow();
@@ -27,7 +29,7 @@ void UPlayerAdaptation::OpenTrackingWindow(const FPlayerActionContext& Context, 
 
 void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 {
-	if (!bIsWindowOpen /*|| Action == EPlayerAction::None*/)
+	if (!bIsWindowOpen)
 	{
 		return;
 	}
@@ -38,22 +40,28 @@ void UPlayerAdaptation::RecordPlayerAction(EPlayerAction Action)
 	FActionCounts& ContextActionRef = TableOfContext.FindOrAdd(CurrentContext.Tags);
 	FActionCounts& AttackActionRef = TableOfAttacks.FindOrAdd(CurrentContext.BossAction);
 
+
+	// Decay every existing count before adding the new observation, so recent behavior
+	// outweighs old.
+	//
+	// Decay does not reduce confidence by itself. Confidence only falls when
+	// the player actually changes what they do.
 	for (float& Weight : ContextActionRef.Weights)
 	{
 		Weight *= DecayPerNewContext;
 	}
-	
+
 	for (float& Weight : AttackActionRef.Weights)
 	{
 		Weight *= DecayPerNewContext;
 	}
-	
+
 	ContextActionRef.Total *= DecayPerNewContext;
 	AttackActionRef.Total *= DecayPerNewContext;
 
 	ContextActionRef.Weights[static_cast<int32>(Action)] += 1.f;
 	ContextActionRef.Total += 1.f;
-	
+
 	AttackActionRef.Weights[static_cast<int32>(Action)] += 1.f;
 	AttackActionRef.Total += 1.f;
 
@@ -83,7 +91,7 @@ void UPlayerAdaptation::LogTable() const
 
 void UPlayerAdaptation::LogCurrentContext() const
 {
- 	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
+	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
 	const auto& History = TableOfContext.Find(CurrentContext.Tags);
 	if (TableOfContext.Contains(CurrentContext.Tags))
 	{
@@ -113,6 +121,8 @@ void UPlayerAdaptation::LogAccuracy() const
 
 void UPlayerAdaptation::GradePrediction(EPlayerAction Action)
 {
+	// Only predictions the boss would actually have acted on are graded. Scoring predictions
+	// below the threshold would measure a model that was never used, and drag the figure down.
 	if (CurrentPrediction.Confidence > ConfidenceThreshold)
 	{
 		TotalPredictions += 1.f;
@@ -158,6 +168,7 @@ void UPlayerAdaptation::BeginPlay()
 
 void UPlayerAdaptation::CloseTrackingWindow()
 {
+	// Player did not respond to attack therefore, closing the window by recording action None.
 	RecordPlayerAction(EPlayerAction::None);
 	bIsWindowOpen = false;
 
@@ -170,6 +181,7 @@ void UPlayerAdaptation::HardReset()
 {
 	SoftReset();
 	TableOfContext.Reset();
+	TableOfAttacks.Reset();
 }
 
 void UPlayerAdaptation::SoftReset()
@@ -187,11 +199,13 @@ FPredictionResult UPlayerAdaptation::PredictBasedOnContext(const FPlayerActionCo
 	int32 BestIndex = 0;
 	float BestWeight = 0.f;
 	FPredictionResult NewPrediction;
+	// Return none if the context doesnt exist in the table.
 	if (!TableOfContext.Contains(Context.Tags))
 	{
 		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
 		return NewPrediction;
 	}
+	// Find the highest weight.
 	auto& ActionHistory = TableOfContext[Context.Tags];
 	auto& AllWeights = ActionHistory.Weights;
 	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
@@ -203,7 +217,7 @@ FPredictionResult UPlayerAdaptation::PredictBasedOnContext(const FPlayerActionCo
 			BestIndex = Index;
 		}
 	}
-
+	// Scale and adjust confidence when the samples are lower than MinSampleConfidence.
 	const float SampleScale = FMath::Clamp(
 		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
 
@@ -238,7 +252,7 @@ FPredictionResult UPlayerAdaptation::PredictBasedOnAttack(const FPlayerActionCon
 		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
 
 	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
-									  (BestWeight / ActionHistory.Total) * SampleScale);
+	                                  (BestWeight / ActionHistory.Total) * SampleScale);
 	return NewPrediction;
 }
 
