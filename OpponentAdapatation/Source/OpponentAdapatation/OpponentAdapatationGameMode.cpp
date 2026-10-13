@@ -34,6 +34,10 @@ void AOpponentAdapatationGameMode::ResetFight() const
 	Boss->CurrentHP = Boss->MaxHP;
 	Cast<ACombatAIController>(Boss->GetController())->Reset();
 	Cast<ACombatAIController>(Boss->GetController())->GetStateTree()->RestartLogic();
+	if (APlayerController* PC = Cast<APlayerController>(Player->GetController()))
+	{
+		Player->EnableInput(PC);
+	}
 	
 	auto* AdaptationModel = Cast<UPlayerAdaptation>(Boss->GetComponentByClass(UPlayerAdaptation::StaticClass()));
 	if (Player->Health > 0.f)

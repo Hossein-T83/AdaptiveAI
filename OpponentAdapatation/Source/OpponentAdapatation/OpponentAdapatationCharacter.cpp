@@ -442,6 +442,13 @@ void AOpponentAdapatationCharacter::DisableWeaponCollision() const
 void AOpponentAdapatationCharacter::TakeDamage_Implementation(const float Damage)
 {
 	Health -= Damage;
+	if (Health <= 0)
+	{
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			DisableInput(PC);
+		}
+	}
 }
 
 void AOpponentAdapatationCharacter::HandleOverlapping_Implementation(AActor* OverlappedActor)
