@@ -16,61 +16,66 @@ UAIDirector::UAIDirector()
 	// ...
 }
 
-const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Context)
+void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& HighestScoreId, float& HighestScore)
 {
-	if (Model)
+	for (const auto& Attack : ValidAttacks)
 	{
-		if (ValidAttacks.Num() > 0)
+		const auto& ContextPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
+		const auto& AttackPrediction = Model->PredictBasedOnAttack(FPlayerActionContext(Context, Attack.Id));
+		float FinalScore = 0.f;
+		if (AdaptationEnabled)
 		{
-			int32 HighestScoreId = 0;
-			float HighestScore = -FLT_MAX;
-			for (const auto& Attack : ValidAttacks)
+			if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
+				ContextPrediction.Action))
 			{
-				const auto& ContextPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
-				const auto& AttackPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
-				float FinalScore = 0.f;
-				if (AdaptationEnabled)
-				{
-					if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
-						ContextPrediction.Action))
-					{
-						FinalScore += ContextBonus * ContextPrediction.Confidence;
-					}
-					if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
-						AttackPrediction)
-					{
-						FinalScore += AttackBonus * AttackPrediction.Confidence;
-					}
-				}
-
-				for (const auto& Tag : Context)
-				{
-					if (const float* Found = Attack.Weights.Find(Tag))
-					{
-						FinalScore += *Found;
-					}
-				}
-				if (FinalScore > HighestScore)
-				{
-					HighestScore = FinalScore;
-					HighestScoreId = Attack.Id;
-					Model->UpdateCurrentPrediction(ContextPrediction);
-				}
+				FinalScore += ContextBonus * ContextPrediction.Confidence;
 			}
-			
-			Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId}, RecordingWindowTime);
-
-			const auto* Found = ValidAttacks.FindByPredicate(
-				[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
-			if (Found)
+			if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
+				AttackPrediction)
 			{
-				const FBossAttack ChosenAttack = *Found;
-				AttacksOnCooldown.Add(ChosenAttack);
-				ValidAttacks.Remove(ChosenAttack);
-				return ChosenAttack;
+				FinalScore += AttackBonus * AttackPrediction.Confidence;
 			}
 		}
+
+		for (const auto& Tag : Context)
+		{
+			if (const float* Found = Attack.Weights.Find(Tag))
+			{
+				FinalScore += *Found;
+			}
+		}
+		if (FinalScore > HighestScore)
+		{
+			HighestScore = FinalScore;
+			HighestScoreId = Attack.Id;
+			Model->UpdateCurrentPrediction(ContextPrediction);
+		}
 	}
+}
+
+const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Context)
+{
+	if (!Model || ValidAttacks.Num() == 0)
+	{
+		return FBossAttack{};
+	}
+
+	int32 HighestScoreId = 0;
+	float HighestScore = -FLT_MAX;
+	ScoreAttacks(Context, HighestScoreId, HighestScore);
+
+	Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId}, RecordingWindowTime);
+
+	const auto* Found = ValidAttacks.FindByPredicate(
+		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
+	if (Found)
+	{
+		const FBossAttack ChosenAttack = *Found;
+		AttacksOnCooldown.Add(ChosenAttack);
+		ValidAttacks.Remove(ChosenAttack);
+		return ChosenAttack;
+	}
+
 	return FBossAttack{};
 }
 

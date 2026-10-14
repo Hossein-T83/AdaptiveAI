@@ -21,6 +21,7 @@ class OPPONENTADAPATATION_API UAIDirector : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UAIDirector();
+	void ScoreAttacks(const FGameplayTagContainer& Context, int32& HighestScoreId, float& HighestScore);
 
 	/**
 	 * Based on the given context, chooses the best available attack.
