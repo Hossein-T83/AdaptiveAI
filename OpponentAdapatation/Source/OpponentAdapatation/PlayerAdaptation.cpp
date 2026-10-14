@@ -82,7 +82,6 @@ void UPlayerAdaptation::LogTable() const
 		{
 			EPlayerAction Action = static_cast<EPlayerAction>(i);
 			float Weight = Counts.Weights[i];
-			float Confidence = 0;
 			UE_LOG(LogTemp, Log, TEXT("  Action: %s, Weight: %.2f"), *UEnum::GetValueAsString(Action), Weight);
 		}
 	}
@@ -92,8 +91,7 @@ void UPlayerAdaptation::LogTable() const
 void UPlayerAdaptation::LogCurrentContext() const
 {
 	UE_LOG(LogTemp, Log, TEXT("Current context Table:"));
-	const auto& History = TableOfContext.Find(CurrentContext.Tags);
-	if (TableOfContext.Contains(CurrentContext.Tags))
+	if (const FActionCounts* History = TableOfContext.Find(CurrentContext.Tags))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Context: %s"), *CurrentContext.ToString());
 		for (int32 i = 0; i < static_cast<int32>(EPlayerAction::Count); ++i)
@@ -170,11 +168,6 @@ void UPlayerAdaptation::CloseTrackingWindow()
 {
 	// Player did not respond to attack therefore, closing the window by recording action None.
 	RecordPlayerAction(EPlayerAction::None);
-	bIsWindowOpen = false;
-
-	LogCurrentContext();
-	LogPrediction();
-	LogAccuracy();
 }
 
 void UPlayerAdaptation::HardReset()
@@ -196,70 +189,50 @@ void UPlayerAdaptation::SoftReset()
 
 FPredictionResult UPlayerAdaptation::PredictBasedOnContext(const FPlayerActionContext& Context)
 {
-	int32 BestIndex = 0;
-	float BestWeight = 0.f;
-	FPredictionResult NewPrediction;
-	// Return none if the context doesnt exist in the table.
-	if (!TableOfContext.Contains(Context.Tags))
+	if (const FActionCounts* History = TableOfContext.Find(Context.Tags))
 	{
-		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
-		return NewPrediction;
+		return PredictFromTable(*History);
 	}
-	// Find the highest weight.
-	auto& ActionHistory = TableOfContext[Context.Tags];
-	auto& AllWeights = ActionHistory.Weights;
-	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
-	{
-		auto& CurrentWeight = AllWeights[Index];
-		if (CurrentWeight > BestWeight)
-		{
-			BestWeight = CurrentWeight;
-			BestIndex = Index;
-		}
-	}
-	// Scale and adjust confidence when the samples are lower than MinSampleConfidence.
-	const float SampleScale = FMath::Clamp(
-		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
-
-	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
-	                                  (BestWeight / ActionHistory.Total) * SampleScale);
-	return NewPrediction;
+	return FPredictionResult(EPlayerAction::None, 0.f);
 }
 
 FPredictionResult UPlayerAdaptation::PredictBasedOnAttack(const FPlayerActionContext& Context)
 {
-	int32 BestIndex = 0;
-	float BestWeight = 0.f;
-	FPredictionResult NewPrediction;
-	if (!TableOfAttacks.Contains(Context.BossAction))
+	if (const FActionCounts* History = TableOfAttacks.Find(Context.BossAction))
 	{
-		NewPrediction = FPredictionResult(EPlayerAction::None, 0.f);
-		return NewPrediction;
+		return PredictFromTable(*History);
 	}
-	auto& ActionHistory = TableOfAttacks[Context.BossAction];
-	auto& AllWeights = ActionHistory.Weights;
-	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
-	{
-		auto& CurrentWeight = AllWeights[Index];
-		if (CurrentWeight > BestWeight)
-		{
-			BestWeight = CurrentWeight;
-			BestIndex = Index;
-		}
-	}
-
-	const float SampleScale = FMath::Clamp(
-		ActionHistory.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
-
-	NewPrediction = FPredictionResult(static_cast<EPlayerAction>(BestIndex),
-	                                  (BestWeight / ActionHistory.Total) * SampleScale);
-	return NewPrediction;
+	return FPredictionResult(EPlayerAction::None, 0.f);
 }
 
 void UPlayerAdaptation::UpdateCurrentPrediction(const FPredictionResult& Prediction)
 {
 	CurrentPrediction = Prediction;
 	CurrentConfidence = Prediction.Confidence;
+}
+
+FPredictionResult UPlayerAdaptation::PredictFromTable(const FActionCounts& History) const
+{
+	// Find the highest weight.
+	int32 BestIndex = 0;
+	float BestWeight = 0.f;
+	auto& AllWeights = History.Weights;
+	for (int32 Index = 0; Index < static_cast<int32>(EPlayerAction::Count); Index++)
+	{
+		auto& CurrentWeight = AllWeights[Index];
+		if (CurrentWeight > BestWeight)
+		{
+			BestWeight = CurrentWeight;
+			BestIndex = Index;
+		}
+	}
+	
+	// Scale and adjust confidence when the samples are lower than MinSampleConfidence.
+	const float SampleScale = FMath::Clamp(
+		History.Total / FMath::Max(static_cast<float>(MinSamplesForConfidence), 1.f), 0.f, 1.f);
+	
+	return  FPredictionResult(static_cast<EPlayerAction>(BestIndex),
+									  (BestWeight / History.Total) * SampleScale);
 }
 
 

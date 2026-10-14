@@ -77,7 +77,7 @@ public:
 
 	/*If the total samples collected is lower than this value, confidence goes down significantly to prevent acting on low amount of samples.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Adaptation|Tuning")
-	int32 MinSamplesForConfidence = 5.f;
+	int32 MinSamplesForConfidence = 5;
 
 protected:
 	// Called when the game starts
@@ -124,4 +124,7 @@ public:
 	FPredictionResult PredictBasedOnAttack(const FPlayerActionContext& Context);
 
 	void UpdateCurrentPrediction(const FPredictionResult& Prediction);
+private:
+	// Helper function for prediction.
+	FPredictionResult PredictFromTable(const FActionCounts& History) const;
 };
