@@ -46,9 +46,6 @@ class AOpponentAdapatationCharacter : public ACharacter, public ICombatInterface
 	UCameraComponent* FollowCamera;
 	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<UCapsuleComponent> WeaponHitBox;
-	
-	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> HitboxComp;
 	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
@@ -88,9 +85,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* ParryAction;
 
+public:
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DashMontage;
-
 	UPROPERTY(EditAnywhere, Category="Animation")
 	TObjectPtr<UAnimMontage> DodgeBackMontage;
 	UPROPERTY(EditAnywhere, Category="Animation")
@@ -179,9 +176,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	float CurrentDamage = 1.f;
-
+	
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
-	float DodgeCost = 15.0f;
+	float DodgeCost = 15.0f; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RollCost = 15.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
@@ -189,54 +187,65 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RunCost = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
-	float RegainStaminaRate = 3.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float ParryCost = 5.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float RegainStaminaRate = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float BlockDmgRatio = 0.5f;
 
+	/**
+	 * Checks if the player has enough stamina for `ActionType`.
+	 * @param ActionType Type of action player is requesting stamina usage for.
+	 * @return Whether player has enough stamina for the requested action or not.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Costs")
+	bool StaminaCheck(const ECostActions ActionType);
+public:
 	UPROPERTY(BlueprintReadWrite, Category = "Animation")
 	bool bIsBusy = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	bool bIsRunning = false;
 
-	UFUNCTION(BlueprintCallable, Category = "Costs")
-	bool StaminaCheck(const ECostActions ActionType);
-
-	UFUNCTION(BlueprintCallable, Category = "Collision")
-	void DisableWeaponCollision() const;
-
-
 public:
 	virtual void TakeDamage_Implementation(const float Damage) override;
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
 	virtual void EnableDamage_Implementation() override;
 	virtual void DisableDamage_Implementation() override;
+	// ICombatInterface
 	
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsBlocking = false;
+	
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsParried = false;
-	UPROPERTY(BlueprintReadWrite)
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	bool bIsAttacking = false;
-	
-	float ParryWindow = 0.f;
-	float BlockWindow = 0.f;
-	
-	bool HasBroadcastedBlock = false;
-	
+
+	/**
+	 * Opens windows for parry and block.
+	 * @param ParryTimer Window that player has for parrying.
+	 * @param BlockTimer Window that player has for blocking.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void OpenParryBlockWindow(const float ParryTimer, const float BlockTimer);
 	
-	void CheckParryBlock(float& Damage);
-	
+	// Broadcasts that player has pressed block.
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void BroadcastBlock();
 	
+	// Check if player has either parried or blocked in the duration of current attack.
+	void CheckParryBlock(float& Damage);
+	
+	
+	
 private: 
 	bool bIsDealingDmg = false;
+	float ParryWindow = 0.f;
+	float BlockWindow = 0.f;
+	bool HasBroadcastedBlock = false;
 	
 };

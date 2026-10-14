@@ -43,10 +43,6 @@ ACombatEnemy::ACombatEnemy()
 	// reset HP to maximum
 	CurrentHP = MaxHP;
 	
-	WeaponHitBox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponHitbox"));
-	WeaponHitBox->SetupAttachment(GetMesh(),TEXT("weapon_r"));
-	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
 	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
 	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	HitboxComp->SetGenerateOverlapEvents(true);   

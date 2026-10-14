@@ -21,11 +21,26 @@ class OPPONENTADAPATATION_API UAIDirector : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UAIDirector();
-	
+
+	/**
+	 * Based on the given context, chooses the best available attack.
+	 * @param Context Gameplaytag container of current fight context.
+	 * @return The attack with the highest score overall.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Director")
 	const FBossAttack ChooseNextAttack(const FGameplayTagContainer& Context);
+	/**
+	 * Calculates delay between each attack based on the given context and the ruleset.
+	 * @param Context Gameplaytag container of current fight context.
+	 * @return Final delay
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Director")
 	float CalculateFinalDelay(const FGameplayTagContainer& Context) const;
+	/**
+	 * Converting Attack ID to its index in active attacks array.
+	 * @param Id Attack ID
+	 * @return Index of given attack in array of active attacks.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	int32 IdToIndex(int32 Id) const;
 
@@ -57,6 +72,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Flags")
 	bool AdaptationEnabled = true;
 	
+	// True if you don't want attack specific data be taken into consideration.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flags")
 	bool FightContextOnly = false;
 	

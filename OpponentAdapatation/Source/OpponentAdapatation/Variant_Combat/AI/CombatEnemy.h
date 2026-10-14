@@ -36,11 +36,6 @@ UCLASS(abstract)
 class ACombatEnemy : public ACharacter, public ICombatAttacker, public ICombatDamageable, public ICombatInterface
 {
 	GENERATED_BODY()
-
-	/** Life bar widget component */
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* LifeBar;*/
-
 public:
 	/** Constructor */
 	ACombatEnemy();
@@ -68,11 +63,7 @@ protected:
 	/** Name of the pelvis bone, for damage ragdoll physics */
 	UPROPERTY(EditAnywhere, Category="Damage")
 	FName PelvisBoneName;
-
-	/** Pointer to the life bar widget */
-	/*UPROPERTY(EditAnywhere, Category="Damage")
-	UCombatLifeBar* LifeBarWidget;*/
-
+	
 	/** If true, the character is currently playing an attack animation */
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	bool bIsAttacking = false;
@@ -236,43 +227,44 @@ protected:
 
 	/** EndPlay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-	void AttackTrace();
-
-	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	TObjectPtr<UCapsuleComponent> WeaponHitBox;
+	
+private:
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> HitboxComp;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> WeaponBegin;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UArrowComponent> WeaponEnd;
+	
+	void AttackTrace();
+
+public:
+	virtual void Tick(float DeltaTime) override;
+	
+	bool IsAttacking() const
+	{
+		return bIsAttacking;
+	}
 
 private:
 	bool bIsDashing = false;
 	FVector DashDirection = FVector(0.0f, 0.0f, 0.0f);
 	float DashDistanceRemaining = 0.f;
 	float DashSpeed = 0.f;
-	
 	bool bIsDealingDmg = false;
 
 public:
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	float CurrentDelay = 0.f;
-	virtual void Tick(float DeltaTime) override;
-
-	bool IsAttacking() const
-	{
-		return bIsAttacking;
-	}
-
 	UFUNCTION(BlueprintCallable, Category="Combat")
 	void Dash(float Speed, float Distance);
 
 	UPROPERTY(BlueprintReadWrite, Category="Combat")
 	TObjectPtr<AOpponentAdapatationCharacter> PlayerRef;
-
+public: 
 	virtual void TakeDamage_Implementation(const float Damage) override;
 	virtual void HandleOverlapping_Implementation(AActor* OverlappedActor) override;
 	virtual void EnableDamage_Implementation() override;
 	virtual void DisableDamage_Implementation() override;
+	// ICombatInterface
 };

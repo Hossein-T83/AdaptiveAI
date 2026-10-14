@@ -48,10 +48,6 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	WeaponHitBox = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponHitbox"));
-	WeaponHitBox->SetupAttachment(GetMesh(),TEXT("sword_top"));
-	WeaponHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	HitboxComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Hitbox"));
 	HitboxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
@@ -165,6 +161,7 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	
 	if (ParryWindow > 0.f)
 	{
 		ParryWindow -= DeltaTime;
@@ -240,6 +237,7 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 
 void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 {
+	// Checks if player is not in middle of another animation and has enough stamina.
 	if (GetController() != nullptr && !bIsBusy)
 	{
 		if (!StaminaCheck(ECostActions::Roll)) return;
@@ -255,6 +253,7 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 		SetActorRotation(Direction.Rotation());
 		PlayAnimMontage(DashMontage);
 
+		// broadcast based on the movement's direction.
 		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
 		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
 		{
@@ -278,12 +277,6 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollBack);
 			}
 		}
-		UE_LOG(LogTemp, Warning, TEXT("input=%s  dir=%s  local=%s  actorYaw=%.1f  ctrlYaw=%.1f"),
-		       *GetLastMovementInputVector().ToString(),
-		       *Direction.ToString(),
-		       *Local.ToString(),
-		       GetActorRotation().Yaw,
-		       GetControlRotation().Yaw);
 	}
 }
 
@@ -421,21 +414,6 @@ bool AOpponentAdapatationCharacter::StaminaCheck(const ECostActions ActionType)
 		}
 	default:
 		return false;
-	}
-}
-
-void AOpponentAdapatationCharacter::DisableWeaponCollision() const
-{
-	TArray<UPrimitiveComponent*> Comps;
-	GetComponents<UPrimitiveComponent>(Comps);
-
-	for (UPrimitiveComponent* C : Comps)
-	{
-		if (C->GetName() == TEXT("WeaponHitBox"))
-		{
-			C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			break;
-		}
 	}
 }
 

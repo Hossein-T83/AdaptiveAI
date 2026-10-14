@@ -3,6 +3,8 @@
 #include "GameplayTagContainer.h"
 #include "AdaptationUtility.generated.h"
 
+
+// Player available actions 
 UENUM(BlueprintType)
 enum class EPlayerAction : uint8
 {
@@ -40,6 +42,7 @@ enum class EHealthBucket : uint8
 	Count UMETA(Hidden)
 };
 
+// Attributes of a boss attack
 USTRUCT(BlueprintType)
 struct FBossAttack
 {
@@ -68,10 +71,7 @@ struct FBossAttack
 	}
 };
 
-
-
-
-
+// Contains current context and attack id
 USTRUCT(BlueprintType)
 struct FPlayerActionContext
 {
