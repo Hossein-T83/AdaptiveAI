@@ -6,11 +6,16 @@
 #include "Components/TextBlock.h"
 
 
-void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString& Attack, const float DeltaTime)
+void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString& Attack, const FString& Scores,
+                             const EPlayerAction PlayerAction, const float DeltaTime)
 {
 	if (PredictionText)
+	{
 		PredictionText->SetText(FText::FromString(
 			FString::Printf(TEXT("Predicted action: %s"), *UEnum::GetValueAsString(Prediction.Action))));
+		Prediction.Action == PlayerAction
+			? PredictionText->SetColorAndOpacity(FColor::Green) : PredictionText->SetColorAndOpacity(FColor::Red);
+	}
 	if (TimerText)
 	{
 		if (TimerRemaining > 0)
@@ -27,7 +32,13 @@ void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString&
 	if (Confidence)
 	{
 		Confidence->SetText(FText::FromString(
-	FString::Printf(TEXT("Confidence: %.2f"), Prediction.Confidence)));
+			FString::Printf(TEXT("Confidence: %.2f"), Prediction.Confidence)));
+	}
+
+	if (ScoresText)
+	{
+		ScoresText->SetText(FText::FromString(
+			FString::Printf(TEXT("Attack scores: %s"), *Scores)));
 	}
 }
 

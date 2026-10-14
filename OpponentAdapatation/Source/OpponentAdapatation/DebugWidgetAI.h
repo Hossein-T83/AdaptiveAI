@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "DebugWidgetAI.generated.h"
 
+enum class EPlayerAction : uint8;
+struct FPredictionResult;
 /**
  * 
  */
@@ -27,9 +29,12 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> Confidence;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> ScoresText;
 
 	UFUNCTION(BlueprintCallable, Category = "Debug")
-	void Refresh(const FPredictionResult& Prediction, const FString& Attack, const float DeltaTime);
+	void Refresh(const FPredictionResult& Prediction, const FString& Attack, const FString& Scores, const EPlayerAction PlayerAction, const float DeltaTime);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	TObjectPtr<AActor> EnemyPtr;

@@ -3,6 +3,8 @@
 
 #include "AIDirector.h"
 
+#include <string>
+
 #include "RuleSet.h"
 #include "PlayerAdaptation.h"
 
@@ -18,6 +20,8 @@ UAIDirector::UAIDirector()
 
 void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& HighestScoreId, float& HighestScore)
 {
+	Scores.Reset();
+	
 	for (const auto& Attack : ValidAttacks)
 	{
 		const auto& ContextPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
@@ -44,6 +48,9 @@ void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& High
 				FinalScore += *Found;
 			}
 		}
+		
+		Scores.Add(Attack.AttackName, FinalScore);
+		
 		if (FinalScore > HighestScore)
 		{
 			HighestScore = FinalScore;
@@ -123,4 +130,14 @@ void UAIDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 			AttacksOnCooldown.RemoveAt(i);
 		}
 	}
+}
+
+FString UAIDirector::GetScoresString() const
+{
+	FString FinalString;
+	for (const auto& Score : Scores)
+	{
+		FinalString += Score.Key.ToString() + ": " + FString::Printf(TEXT("%.2f"), Score.Value) + "\n";
+	}
+	return FinalString;
 }

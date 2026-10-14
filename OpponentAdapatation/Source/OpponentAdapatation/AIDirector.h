@@ -82,4 +82,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bonus")
 	float AttackBonus = 10.f;
 	
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "Result")
+	TMap<FName, float> Scores;
+	
+	UFUNCTION(BlueprintCallable, Category = "Result")
+	FString GetScoresString() const;
+	
 };
