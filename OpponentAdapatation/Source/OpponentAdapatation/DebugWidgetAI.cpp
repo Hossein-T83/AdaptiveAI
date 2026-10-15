@@ -14,7 +14,8 @@ void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString&
 		PredictionText->SetText(FText::FromString(
 			FString::Printf(TEXT("Predicted action: %s"), *UEnum::GetValueAsString(Prediction.Action))));
 		Prediction.Action == PlayerAction
-			? PredictionText->SetColorAndOpacity(FColor::Green) : PredictionText->SetColorAndOpacity(FColor::Red);
+			? PredictionText->SetColorAndOpacity(FColor::Green)
+			: PredictionText->SetColorAndOpacity(FColor::Red);
 	}
 	if (TimerText)
 	{
@@ -23,11 +24,13 @@ void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString&
 			TimerRemaining -= DeltaTime;
 		}
 		TimerText->SetText(FText::AsNumber(TimerRemaining));
+		TimerText->SetColorAndOpacity(FColor::Orange);
 	}
 	if (SelectedAttack)
 	{
 		SelectedAttack->SetText(FText::FromString(
 			FString::Printf(TEXT("Selected attack: %s"), *Attack)));
+		SelectedAttack->SetColorAndOpacity(FColor::Green);
 	}
 	if (Confidence)
 	{
@@ -39,6 +42,12 @@ void UDebugWidgetAI::Refresh(const FPredictionResult& Prediction, const FString&
 	{
 		ScoresText->SetText(FText::FromString(
 			FString::Printf(TEXT("Attack scores: %s"), *Scores)));
+	}
+
+	if (RecordedActionText)
+	{
+		RecordedActionText->SetText(
+			FText::FromString(FString::Printf(TEXT("Recorded action: %s"), *UEnum::GetValueAsString(PlayerAction))));
 	}
 }
 

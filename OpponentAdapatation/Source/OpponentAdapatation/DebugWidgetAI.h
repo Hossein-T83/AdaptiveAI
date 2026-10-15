@@ -32,6 +32,9 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> ScoresText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> RecordedActionText;
 
 	UFUNCTION(BlueprintCallable, Category = "Debug")
 	void Refresh(const FPredictionResult& Prediction, const FString& Attack, const FString& Scores, const EPlayerAction PlayerAction, const float DeltaTime);
