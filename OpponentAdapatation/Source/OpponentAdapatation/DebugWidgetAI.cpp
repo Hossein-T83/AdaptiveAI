@@ -3,6 +3,8 @@
 
 #include "DebugWidgetAI.h"
 #include "AdaptationUtility.h"
+#include "CombatEnemy.h"
+#include "Components/StateTreeAIComponent.h"
 #include "Components/TextBlock.h"
 
 

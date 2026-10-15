@@ -38,9 +38,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Debug")
 	void Refresh(const FPredictionResult& Prediction, const FString& Attack, const FString& Scores, const EPlayerAction PlayerAction, const float DeltaTime);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
-	TObjectPtr<AActor> EnemyPtr;
 	
 	UFUNCTION(BlueprintCallable, Category = "Debug")
 	void StartTimer(float Time);

@@ -57,7 +57,6 @@ AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 	WeaponEnd = CreateDefaultSubobject<UArrowComponent>(TEXT("WeaponEnd"));
 	WeaponEnd->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponEnd->SetupAttachment(GetMesh(),TEXT("sword_top"));
-	
 }
 
 void AOpponentAdapatationCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -120,14 +119,14 @@ void AOpponentAdapatationCharacter::AttackTrace()
 	if (auto* HitActor = Hit.GetActor(); HitActor && HitActor != this && HitActor->Implements<UCombatInterface>())
 	{
 		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), Hit.Location, FColor::Green);
-		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::White);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5, 5, FColor::White);
 		Execute_TakeDamage(HitActor, CurrentDamage);
 		bIsDealingDmg = false;
 	}
 	else
 	{
 		DrawDebugLine(GetWorld(), WeaponBegin->GetComponentLocation(), WeaponEnd->GetComponentLocation(), FColor::Red);
-		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5,5,FColor::Orange);
+		DrawDebugSphere(GetWorld(), WeaponEnd->GetComponentLocation(), 5, 5, FColor::Orange);
 	}
 }
 
@@ -148,7 +147,7 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 		{
 			RunStop();
 			Stamina = 0;
-		}  
+		}
 	}
 	else
 	{
@@ -161,7 +160,7 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	
+
 	if (ParryWindow > 0.f)
 	{
 		ParryWindow -= DeltaTime;
@@ -311,7 +310,7 @@ void AOpponentAdapatationCharacter::BlockStart(const FInputActionValue& Value)
 void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
 {
 	bIsBlocking = false;
-	HasBroadcastedBlock = false;	
+	HasBroadcastedBlock = false;
 }
 
 void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
@@ -452,7 +451,7 @@ void AOpponentAdapatationCharacter::OpenParryBlockWindow(const float ParryTimer,
 
 void AOpponentAdapatationCharacter::CheckParryBlock(float& Damage)
 {
-	if (bIsBlocking && BlockWindow > 0.f) Damage *= BlockDmgRatio;
+	if (bIsBlocking && BlockWindow > 0.f) Damage *= BlockDmgRatio, Stamina -= BlockedCost;
 	else if (bIsParried) Damage = 0.f;
 	bIsParried = false;
 	bIsBlocking = false;
@@ -463,6 +462,6 @@ void AOpponentAdapatationCharacter::BroadcastBlock()
 	if (!HasBroadcastedBlock)
 	{
 		OnPlayerActionRecorded.Broadcast(EPlayerAction::Block);
-		HasBroadcastedBlock = true;	
+		HasBroadcastedBlock = true;
 	}
 }

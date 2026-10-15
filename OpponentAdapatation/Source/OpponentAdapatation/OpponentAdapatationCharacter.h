@@ -188,6 +188,8 @@ public:
 	float RunCost = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float ParryCost = 5.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
+	float BlockedCost = 5.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Costs")
 	float RegainStaminaRate = 3.f;
