@@ -21,7 +21,7 @@ void UCollisionEnableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 {
 	Super::Notify(MeshComp, Animation, EventRef);
 	AActor* Owner = MeshComp->GetOwner();
-	if (!Owner) return;
+	if (!Owner || !Owner->Implements<UCombatInterface>()) return;
 	ICombatInterface::Execute_EnableDamage(Owner);
 	/*TArray<UPrimitiveComponent*> Comps;
 	Owner->GetComponents<UPrimitiveComponent>(Comps);
@@ -42,7 +42,7 @@ void UCollisionDisableNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 {
 	Super::Notify(MeshComp, Animation, EventRef);
 	AActor* Owner = MeshComp->GetOwner();
-	if (!Owner) return;
+	if (!Owner || !Owner->Implements<UCombatInterface>()) return;
 	ICombatInterface::Execute_DisableDamage(Owner);
 	/*TArray<UPrimitiveComponent*> Comps;
 	Owner->GetComponents<UPrimitiveComponent>(Comps);
