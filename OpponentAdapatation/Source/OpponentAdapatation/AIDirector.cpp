@@ -5,6 +5,7 @@
 
 #include <string>
 
+#include "FightSimulation.h"
 #include "RuleSet.h"
 #include "PlayerAdaptation.h"
 
@@ -14,6 +15,10 @@ UAIDirector::UAIDirector()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+	
+	Bot = CreateDefaultSubobject<UScriptedPlayer>(TEXT("Script"));
+	Recorder = CreateDefaultSubobject<UFightRecorder>(TEXT("Recorder"));
+	
 
 	// ...
 }
@@ -72,6 +77,11 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 	ScoreAttacks(Context, HighestScoreId, HighestScore);
 
 	Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId}, RecordingWindowTime);
+	
+	Bot->OnBossAttackStarted(HighestScoreId);
+	Recorder->RecordBossAttack(HighestScoreId,
+		UEnum::GetValueAsString(Model->GetCurrentPrediction().Action),
+		Model->GetCurrentPrediction().Confidence);
 
 	const auto* Found = ValidAttacks.FindByPredicate(
 		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });

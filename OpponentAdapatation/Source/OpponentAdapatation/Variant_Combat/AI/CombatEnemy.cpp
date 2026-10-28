@@ -9,10 +9,12 @@
 #include "Engine/DamageEvents.h"
 #include "CombatLifeBar.h"
 #include "OpponentAdapatationCharacter.h"
+#include "SimRunner.h"
 #include "TimerManager.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Components/ArrowComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ACombatEnemy::ACombatEnemy()
 {
@@ -410,6 +412,16 @@ void ACombatEnemy::Dash(float Speed, float Distance)
 void ACombatEnemy::TakeDamage_Implementation(const float Damage)
 {
 	CurrentHP -= Damage;
+	
+	if (CurrentHP <= 0)
+	{
+		// player death
+		if (ASimRunner* Runner = Cast<ASimRunner>(
+				UGameplayStatics::GetActorOfClass(GetWorld(), ASimRunner::StaticClass())))
+		{
+			Runner->OnFightEnded(true);
+		}
+	}
 }
 
 void ACombatEnemy::HandleOverlapping_Implementation(AActor* OverlappedActor)

@@ -121,8 +121,10 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	void DoDodge(FVector Direction);
 
 	void Dodge(const FInputActionValue& Value);
+	void DoRoll(FVector Direction);
 
 	void Roll(const FInputActionValue& Value);
 
@@ -132,6 +134,7 @@ protected:
 	
 	void BlockStart(const FInputActionValue& Value);
 	void BlockEnd(const FInputActionValue& Value);
+	void DoParry();
 	void Parry(const FInputActionValue& Value);
 
 public:
@@ -250,4 +253,6 @@ private:
 	float BlockWindow = 0.f;
 	bool HasBroadcastedBlock = false;
 	
+public:
+	void PerformAction(EPlayerAction Action);
 };

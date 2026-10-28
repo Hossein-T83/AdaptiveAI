@@ -1,6 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "OpponentAdapatationCharacter.h"
+
+#include "AIDirector.h"
+#include "CombatEnemy.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,10 +12,13 @@
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "FightSimulation.h"
 #include "InputActionValue.h"
 #include "OpponentAdapatation.h"
 #include "PlayerAdaptation.h"
+#include "SimRunner.h"
 #include "Components/ArrowComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AOpponentAdapatationCharacter::AOpponentAdapatationCharacter()
 {
@@ -190,6 +196,39 @@ void AOpponentAdapatationCharacter::Look(const FInputActionValue& Value)
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
 
+void AOpponentAdapatationCharacter::DoDodge(FVector Direction)
+{
+	Direction.Normalize();
+
+	const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
+	if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
+	{
+		if (Local.Y > 0)
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeRight);
+			PlayAnimMontage(DodgeRightMontage);
+		}
+		else
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
+			PlayAnimMontage(DodgeLeftMontage);
+		}
+	}
+	else
+	{
+		if (Local.X > 0)
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeForward);
+			PlayAnimMontage(DodgeForwardMontage);
+		}
+		else
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeBack);
+			PlayAnimMontage(DodgeBackMontage);
+		}
+	}
+}
+
 void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 {
 	if (GetController() != nullptr && !bIsBusy)
@@ -202,34 +241,37 @@ void AOpponentAdapatationCharacter::Dodge(const FInputActionValue& Value)
 		{
 			Direction = -GetActorForwardVector();
 		}
-		Direction.Normalize();
+		DoDodge(Direction);
+	}
+}
 
-		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
-		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
+void AOpponentAdapatationCharacter::DoRoll(FVector Direction)
+{
+	SetActorRotation(Direction.Rotation());
+	PlayAnimMontage(DashMontage);
+
+	// broadcast based on the movement's direction.
+	const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
+	if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
+	{
+		if (Local.Y > 0)
 		{
-			if (Local.Y > 0)
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeRight);
-				PlayAnimMontage(DodgeRightMontage);
-			}
-			else
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeLeft);
-				PlayAnimMontage(DodgeLeftMontage);
-			}
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::RollRight);
 		}
 		else
 		{
-			if (Local.X > 0)
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeForward);
-				PlayAnimMontage(DodgeForwardMontage);
-			}
-			else
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::DodgeBack);
-				PlayAnimMontage(DodgeBackMontage);
-			}
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::RollLeft);
+		}
+	}
+	else
+	{
+		if (Local.X > 0)
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::RollForward);
+		}
+		else
+		{
+			OnPlayerActionRecorded.Broadcast(EPlayerAction::RollBack);
 		}
 	}
 }
@@ -249,33 +291,7 @@ void AOpponentAdapatationCharacter::Roll(const FInputActionValue& Value)
 		}
 		Direction.Normalize();
 
-		SetActorRotation(Direction.Rotation());
-		PlayAnimMontage(DashMontage);
-
-		// broadcast based on the movement's direction.
-		const FVector Local = GetActorTransform().InverseTransformVectorNoScale(Direction);
-		if (FMath::Abs(Local.Y) > FMath::Abs(Local.X))
-		{
-			if (Local.Y > 0)
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollRight);
-			}
-			else
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollLeft);
-			}
-		}
-		else
-		{
-			if (Local.X > 0)
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollForward);
-			}
-			else
-			{
-				OnPlayerActionRecorded.Broadcast(EPlayerAction::RollBack);
-			}
-		}
+		DoRoll(Direction);
 	}
 }
 
@@ -313,10 +329,8 @@ void AOpponentAdapatationCharacter::BlockEnd(const FInputActionValue& Value)
 	HasBroadcastedBlock = false;
 }
 
-void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
+void AOpponentAdapatationCharacter::DoParry()
 {
-	if (bIsBusy) return;
-	bIsBusy = true;
 	if (ParryWindow > 0.f)
 	{
 		bIsParried = true;
@@ -328,6 +342,13 @@ void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
 	}
 	PlayAnimMontage(ParryMontage);
 	OnPlayerActionRecorded.Broadcast(EPlayerAction::Parry);
+}
+
+void AOpponentAdapatationCharacter::Parry(const FInputActionValue& Value)
+{
+	if (bIsBusy) return;
+	bIsBusy = true;
+	DoParry();
 }
 
 void AOpponentAdapatationCharacter::DoMove(float Right, float Forward)
@@ -419,11 +440,23 @@ bool AOpponentAdapatationCharacter::StaminaCheck(const ECostActions ActionType)
 void AOpponentAdapatationCharacter::TakeDamage_Implementation(const float Damage)
 {
 	Health -= Damage;
+	
+	const auto& Director = Cast<UAIDirector>(
+		UGameplayStatics::GetActorOfClass(GetWorld(), ACombatEnemy::StaticClass())->
+		GetComponentByClass(UAIDirector::StaticClass()));
+	Director->GetFightRecorder()->RecordPlayerDamaged(Damage);
 	if (Health <= 0)
 	{
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			DisableInput(PC);
+		}
+		
+		// player death
+		if (ASimRunner* Runner = Cast<ASimRunner>(
+				UGameplayStatics::GetActorOfClass(GetWorld(), ASimRunner::StaticClass())))
+		{
+			Runner->OnFightEnded(false);
 		}
 	}
 }
@@ -455,6 +488,57 @@ void AOpponentAdapatationCharacter::CheckParryBlock(float& Damage)
 	else if (bIsParried) Damage = 0.f;
 	bIsParried = false;
 	bIsBlocking = false;
+}
+
+void AOpponentAdapatationCharacter::PerformAction(EPlayerAction Action)
+{
+	switch (Action)
+	{
+	case EPlayerAction::None:
+		break;
+	case EPlayerAction::DodgeLeft:
+		DoDodge(FVector(-1.f, 0.f, 0.f));
+		break;
+	case EPlayerAction::DodgeRight:
+		DoDodge(FVector(1.f, 0.f, 0.f));
+		break;
+	case EPlayerAction::DodgeBack:
+		DoDodge(FVector(0.f, -1.f, 0.f));
+		break;
+	case EPlayerAction::DodgeForward:
+		DoDodge(FVector(0.f, 1.f, 0.f));
+		break;
+	case EPlayerAction::Parry:
+		DoParry();
+		break;
+	case EPlayerAction::Block:
+		OnPlayerActionRecorded.Broadcast(EPlayerAction::Block);
+		break;
+	case EPlayerAction::RollLeft:
+		DoRoll(FVector(-1.f, 0.f, 0.f));
+		break;
+	case EPlayerAction::RollRight:
+		DoRoll(FVector(1.f, 0.f, 0.f));
+		break;
+	case EPlayerAction::RollBack:
+		DoRoll(FVector(0.f, -1.f, 0.f));
+		break;
+	case EPlayerAction::RollForward:
+		DoRoll(FVector(0.f, 1.f, 0.f));
+		break;
+	case EPlayerAction::Jump:
+		DoJumpStart();
+		break;
+	case EPlayerAction::Attack:
+		OnPlayerActionRecorded.Broadcast(EPlayerAction::Attack);
+		break;
+	case EPlayerAction::Count:
+		break;
+	}
+	const auto& Director = Cast<UAIDirector>(
+		UGameplayStatics::GetActorOfClass(GetWorld(), ACombatEnemy::StaticClass())->
+		GetComponentByClass(UAIDirector::StaticClass()));
+	Director->GetFightRecorder()->RecordPlayerAction(Action, Director->GetScripter()->WasLastActionTheHabit());
 }
 
 void AOpponentAdapatationCharacter::BroadcastBlock()
