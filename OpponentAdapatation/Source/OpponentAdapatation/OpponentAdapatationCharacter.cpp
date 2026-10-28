@@ -176,6 +176,18 @@ void AOpponentAdapatationCharacter::Tick(float DeltaTime)
 	{
 		BlockWindow -= DeltaTime;
 	}
+	
+	if (Health <= 0)
+	{
+		
+		
+		// player death
+		if (ASimRunner* Runner = Cast<ASimRunner>(
+				UGameplayStatics::GetActorOfClass(GetWorld(), ASimRunner::StaticClass())))
+		{
+			Runner->OnFightEnded(false);
+		}
+	}
 }
 
 void AOpponentAdapatationCharacter::Move(const FInputActionValue& Value)
@@ -492,21 +504,26 @@ void AOpponentAdapatationCharacter::CheckParryBlock(float& Damage)
 
 void AOpponentAdapatationCharacter::PerformAction(EPlayerAction Action)
 {
+	FVector Direction = GetLastMovementInputVector();
+	if (Direction.IsNearlyZero())
+	{
+		Direction = -GetActorForwardVector();
+	}
 	switch (Action)
 	{
 	case EPlayerAction::None:
 		break;
 	case EPlayerAction::DodgeLeft:
-		DoDodge(FVector(-1.f, 0.f, 0.f));
+		DoDodge(Direction);
 		break;
 	case EPlayerAction::DodgeRight:
-		DoDodge(FVector(1.f, 0.f, 0.f));
+		DoDodge(Direction);
 		break;
 	case EPlayerAction::DodgeBack:
-		DoDodge(FVector(0.f, -1.f, 0.f));
+		DoDodge(Direction);
 		break;
 	case EPlayerAction::DodgeForward:
-		DoDodge(FVector(0.f, 1.f, 0.f));
+		DoDodge(Direction);
 		break;
 	case EPlayerAction::Parry:
 		DoParry();
@@ -515,16 +532,16 @@ void AOpponentAdapatationCharacter::PerformAction(EPlayerAction Action)
 		OnPlayerActionRecorded.Broadcast(EPlayerAction::Block);
 		break;
 	case EPlayerAction::RollLeft:
-		DoRoll(FVector(-1.f, 0.f, 0.f));
+		DoRoll(Direction);
 		break;
 	case EPlayerAction::RollRight:
-		DoRoll(FVector(1.f, 0.f, 0.f));
+		DoRoll(Direction);
 		break;
 	case EPlayerAction::RollBack:
-		DoRoll(FVector(0.f, -1.f, 0.f));
+		DoRoll(Direction);
 		break;
 	case EPlayerAction::RollForward:
-		DoRoll(FVector(0.f, 1.f, 0.f));
+		DoRoll(Direction);
 		break;
 	case EPlayerAction::Jump:
 		DoJumpStart();

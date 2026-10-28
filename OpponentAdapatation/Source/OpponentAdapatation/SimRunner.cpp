@@ -141,7 +141,6 @@ void ASimRunner::BeginNextFight()
 void ASimRunner::OnFightEnded(bool bPlayerWon)
 {
 	// top of OnFightEnded
-	UE_LOG(LogTemp, Warning, TEXT("SIM: fight ended, won=%d"), bPlayerWon ? 1 : 0);
 
 
 	if (!bRunning)
@@ -149,6 +148,7 @@ void ASimRunner::OnFightEnded(bool bPlayerWon)
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("SIM: fight ended, won=%d"), bPlayerWon ? 1 : 0);
 	GetWorld()->GetTimerManager().ClearTimer(TimeoutTimer);
 
 	Recorder->EndFight(bPlayerWon);

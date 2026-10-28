@@ -15,10 +15,10 @@ UAIDirector::UAIDirector()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	
+
 	Bot = CreateDefaultSubobject<UScriptedPlayer>(TEXT("Script"));
 	Recorder = CreateDefaultSubobject<UFightRecorder>(TEXT("Recorder"));
-	
+
 
 	// ...
 }
@@ -26,7 +26,7 @@ UAIDirector::UAIDirector()
 void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& HighestScoreId, float& HighestScore)
 {
 	Scores.Reset();
-	
+
 	for (const auto& Attack : ValidAttacks)
 	{
 		const auto& ContextPrediction = Model->PredictBasedOnContext(FPlayerActionContext(Context, Attack.Id));
@@ -34,13 +34,15 @@ void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& High
 		float FinalScore = 0.f;
 		if (AdaptationEnabled)
 		{
-			if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
-				ContextPrediction.Action))
+			bool IsPunishable = Attack.PunishableActions.Contains(
+				ContextPrediction.Action);
+
+			if (ContextPrediction.Confidence > Model->ConfidenceThreshold && IsPunishable)
 			{
 				FinalScore += ContextBonus * ContextPrediction.Confidence;
 			}
 			if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
-				AttackPrediction)
+				AttackPrediction && IsPunishable)
 			{
 				FinalScore += AttackBonus * AttackPrediction.Confidence;
 			}
@@ -53,9 +55,9 @@ void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& High
 				FinalScore += *Found;
 			}
 		}
-		
+
 		Scores.Add(Attack.AttackName, FinalScore);
-		
+
 		if (FinalScore > HighestScore)
 		{
 			HighestScore = FinalScore;
@@ -77,11 +79,11 @@ const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Con
 	ScoreAttacks(Context, HighestScoreId, HighestScore);
 
 	Model->OpenTrackingWindow(FPlayerActionContext{.Tags = Context, .BossAction = HighestScoreId}, RecordingWindowTime);
-	
+
 	Bot->OnBossAttackStarted(HighestScoreId);
 	Recorder->RecordBossAttack(HighestScoreId,
-		UEnum::GetValueAsString(Model->GetCurrentPrediction().Action),
-		Model->GetCurrentPrediction().Confidence);
+	                           UEnum::GetValueAsString(Model->GetCurrentPrediction().Action),
+	                           Model->GetCurrentPrediction().Confidence);
 
 	const auto* Found = ValidAttacks.FindByPredicate(
 		[HighestScoreId](const FBossAttack& A) { return A.Id == HighestScoreId; });
