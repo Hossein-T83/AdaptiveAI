@@ -29,13 +29,15 @@ void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& High
 		float FinalScore = 0.f;
 		if (AdaptationEnabled)
 		{
-			if (ContextPrediction.Confidence > Model->ConfidenceThreshold && Attack.PunishableActions.Contains(
-				ContextPrediction.Action))
+			bool IsPunishable = Attack.PunishableActions.Contains(
+				ContextPrediction.Action);
+
+			if (ContextPrediction.Confidence > Model->ConfidenceThreshold && IsPunishable)
 			{
 				FinalScore += ContextBonus * ContextPrediction.Confidence;
 			}
 			if (!FightContextOnly && AttackPrediction.Confidence > Model->ConfidenceThreshold && ContextPrediction ==
-				AttackPrediction)
+				AttackPrediction && IsPunishable)
 			{
 				FinalScore += AttackBonus * AttackPrediction.Confidence;
 			}
