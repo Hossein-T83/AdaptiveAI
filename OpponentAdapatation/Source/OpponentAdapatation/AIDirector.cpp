@@ -62,12 +62,14 @@ void UAIDirector::ScoreAttacks(const FGameplayTagContainer& Context, int32& High
 	}
 }
 
-const FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Context)
+FBossAttack UAIDirector::ChooseNextAttack(const FGameplayTagContainer& Context)
 {
-	if (!Model || ValidAttacks.Num() == 0)
+	if (ValidAttacks.Num() == 0)
 	{
 		return FBossAttack{};
 	}
+	
+	if (!Model) AdaptationEnabled = false;
 
 	int32 HighestScoreId = 0;
 	float HighestScore = -FLT_MAX;

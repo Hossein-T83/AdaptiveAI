@@ -29,7 +29,7 @@ public:
 	 * @return The attack with the highest score overall.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Director")
-	const FBossAttack ChooseNextAttack(const FGameplayTagContainer& Context);
+	FBossAttack ChooseNextAttack(const FGameplayTagContainer& Context);
 	/**
 	 * Calculates delay between each attack based on the given context and the ruleset.
 	 * @param Context Gameplaytag container of current fight context.
